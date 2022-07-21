@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_description %}
+Editar producto
+{% endblock meta_description %}
+
+{% block title %}
+Editar producto
+{% endblock title %}
+
+{% block additional_links %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock additional_links %}
+
+{% block main_content %}
+<div class="mb-5" id="app_update_product" style="padding: 0px 75px;">
+    <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
+        <h1 class="display-4 fw-normal mb-2"> Edición de producto </h1>
+    </div>
+    
+
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-7">
+            <form method="post" id="form_product">
+                {% csrf_token %}
+                <input type="hidden" id="txt_category" value="{{ form.category.value }}">
+                <div class="row">
+                    <div class="mb-4">
+                        <label for="txt_sku" class="form-label"> SKU </label>
+                        <input type="text" class="form-control" id="txt_sku" name="sku" value="{{ form.sku.value }}" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="txt_description" class="form-label"> Descripción </label>
+                        <input type="text" class="form-control" id="txt_description" name="description" value="{{ form.description.value }}" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="slc_category" class="form-label"> Categoría </label>
+                        <select class="form-select" id="slc_category" name="category" required>
+                            <option selected> Selecciona una categoría </option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}"> {{ category.name }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="slc_type" class="form-label"> Tipo </label>
+                        <select class="form-select" id="slc_type" name="type" required>
+                            {% for type in types %}
+                            <option value="{{ type.id }}"> {{ type.name }} </option>
+                            {% if type.id == form.type.value %}
+                            <option value="{{ type.id }}" selected> {{ type.name }} </option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-list text-end mb-4">
+                    <a href="/products/list/" class="btn btn-pill btn-lg btn-warning"> Cancelar </a>
+                    <button type="submit" class="btn btn-pill btn-lg btn-success"> Agregar </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock main_content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{% static 'js/products/update.js' %}"></script>
+{% endblock scripts %}

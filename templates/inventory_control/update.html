@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_description %}
+Editar inventario
+{% endblock meta_description %}
+
+{% block title %}
+Editar inventario
+{% endblock title %}
+
+{% block additional_links %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock additional_links %}
+
+{% block main_content %}
+<div class="mb-5" id="app_update_product" style="padding: 0px 75px;">
+    <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
+        <h1 class="display-4 fw-normal mb-2"> Edición de inventario </h1>
+    </div>
+    
+
+    <div class="row d-flex justify-content-center">
+        <div class="col-md-7">
+            <form method="post" id="form_inventory_control">
+                {% csrf_token %}
+                <input type="hidden" id="txt_store" value="{{ form.store.value }}">
+                <input type="hidden" id="txt_employee" value="{{ form.employee.value }}">
+                <div class="row">
+                    <div class="mb-4">
+                        <label for="slc_warehouse" class="form-label"> Bodega </label>
+                        <select name="warehouse" id="slc_warehouse" class="form-select">
+                            {% for item in warehouses %}
+                            <option value="{{ item.id }}" :selected="{{ item.id }} == {{ form.warehouse.value }}"> {{ item.name }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <div class="mb-4">
+                            <label for="slc_employee" class="form-label"> Empleado </label>
+                            <select class="form-select" id="slc_employee" name="employee" required>
+                                <option selected> Selecciona un empleado </option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}"> {{ employee.first_name }} {{ employee.last_name }} </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="slc_store" class="form-label"> Almacen </label>
+                        <select class="form-select" id="slc_store" name="store" required> 
+                            {% for store in stores %}
+                            <option value="{{ store.id }}"> {{ store.username }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-list text-end mb-4">
+                    <a href="/inventory-control/list/" class="btn btn-pill btn-lg btn-warning"> Cancelar </a>
+                    <button type="submit" class="btn btn-pill btn-lg btn-success"> Agregar </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock main_content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="{% static 'js/inventory_control/update.js' %}"></script>
+{% endblock scripts %}

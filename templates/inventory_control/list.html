@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_description %}
+Lista de inventarios
+{% endblock meta_description %}
+
+{% block title %}
+Lista de inventarios
+{% endblock title %}
+
+{% block additional_links %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock additional_links %}
+
+{% block main_content %}
+<div class="mb-5" id="app_product_list" style="padding: 0px 75px;">
+    <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
+        <h1 class="display-4 fw-normal mb-2"> Lista de inventarios </h1>
+    </div>
+    <div class="mt-2 pb-md-4 mx-auto">
+        <div class="btn-list">
+            <a href="/inventory-control/create/" class="btn btn-pill btn-primary-light"> Agregar inventario </a>
+            <a href="#" class="btn btn-pill btn-info-light"> Filtrar </a>
+        </div>
+    </div>    
+
+    <!-- Table -->
+    <div class="row">
+        <div class="col-xl-12 col-md-12">
+            <div class="card cart">
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-vcenter text-nowrap">
+                            <thead>
+                                <tr class="border-top">
+                                    <th> ID </th>
+                                    <th> Bodega </th>
+                                    <th> Empleado </th>
+                                    <th class="w-10"> Almacen </th>
+                                    <th class="w-10"> Estado </th>
+                                    <th class="w-15"> Acciones </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(inventory, index) in inventories" :key="index">
+                                    <td> { inventory.id } </td>
+                                    <td> { inventory.warehouse } </td>
+                                    <td> { inventory.employee } </td>
+                                    <td> { inventory.store } </td>
+                                    <td> { inventory.status == 1 ? "Iniciado"  : inventory.status == 2 ? "Finalizado" : "Finalizado" } </td>
+                                    <td>
+                                        
+                                        <a :href="inventory.absolute_url" class="btn btn-primary-light btn-square br-50 m-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar inventario">
+                                            <i class="fa fa-edit" style="font-size: 15px"></i>
+                                        </a>
+                                       
+                                        
+                                        <a :href="`/inventory-control/counting/list/${inventory.id}/`" class="btn btn-secondary-light btn-square br-50 m-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Ver conteos">
+                                            <i class="fa fa-list-ul" style="font-size: 15px"></i>
+                                        </a>
+                                        
+                                    </td>
+                                </tr>        
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginator -->
+    <div id="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <div class="col-md-6">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li v-show="pagination.previous != null" @click="previousNextPage(previous, 0)" class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item active-item" v-for="page in pagination.pages" :id="`li_${page}`" :class="{'active': (page == 1)}" :key="page" @click.prevent="selectPage(page)">
+                                <a class="page-link" href="#"> { page } </a>
+                            </li>
+                            
+                            <li class="page-item" v-show="pagination.next != null"  @click="previousNextPage(pagination.next, 1)">
+                                <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-md-6">
+                    <div class="spinner-border text-primary" role="status" v-if="pagination.use_pagination">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Inventory count create modal -->
+
+
+    
+
+    
+</div>
+{% endblock main_content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script type="module" src="{% static 'js/inventory_control/list.js' %}"></script>
+{% endblock scripts %}

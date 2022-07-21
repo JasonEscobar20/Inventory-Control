@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_description %}
+Lista de productos
+{% endblock meta_description %}
+
+{% block title %}
+Lista de productos
+{% endblock title %}
+
+{% block main_content %}
+<div class="mb-5" id="app_product_list" style="padding: 0px 75px;">
+    <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
+        <h1 class="display-4 fw-normal mb-2"> Lista de productos </h1>
+    </div>
+    <div class="mt-2 pb-md-4 mx-auto">
+        <div class="btn-list">
+            <a href="/products/create/" class="btn btn-pill btn-primary-light"> Agregar producto </a>
+            <a href="#"  data-bs-target="#modaldemo1" data-bs-toggle="modal" class="btn btn-pill btn-info-light"> Filtrar </a>
+        </div>
+    </div>    
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-primary">
+                <th> SKU </th>
+                <th> Descripción </th>
+                <th> Categoría </th>
+                <th> Tipo de artículo </th>
+                <th> Activo </th>
+                <th>  </th>
+            </thead>
+            <tbody>
+                <tr v-for="(product, index) in products" :key="index">
+                    <td> { product.sku } </td>
+                    <td> { product.description } </td>
+                    <td> { product.category } </td>
+                    <td> { product.type } </td>
+                    <td> { product.active ? "Activo"  : "Inactivo" } </td>
+                    <td>
+                        <a :href="product.absolute_url" class="text-dark">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>        
+            </tbody>
+        </table>
+    </div>
+    <div id="row" v-if="!filterActive">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <div class="col-md-6">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li v-show="pagination.previous != null" @click="previousNextPage(previous, 0)" class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item active-item" v-for="page in pagination.pages" :id="`li_${page}`" :class="{'active': (page == 1)}" :key="page" @click.prevent="selectPage(page)">
+                                <a class="page-link" href="#"> { page } </a>
+                            </li>
+                            
+                            <li class="page-item" v-show="pagination.next != null"  @click="previousNextPage(pagination.next, 1)">
+                                <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-md-6">
+                    <div class="spinner-border text-primary" role="status" v-if="pagination.use_pagination">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade"  id="modaldemo1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-content-demo">
+                <div class="modal-header">
+                    <h6 class="modal-title"> Filtros </h6>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" ><span aria-hidden="true">&times;</span></button>
+                </div>
+                <form id="form_filter_products" @submit.prevent="filterProducts">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <label for="" class="form-label"> Categoría </label>
+                                        <select name="category" id="slc_category" class="form-select">
+                                            <option value="" selected> Selecciona una opcíon </option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}"> {{ category.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="" class="form-label"> Tipo </label>
+                                        <select name="type" id="slc_type" class="form-select">
+                                            <option value="" selected> Selecciona una opcíon </option>
+                                            {% for type in types %}
+                                            <option value="{{ type.id }}"> {{ type.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" > Filtrar </button> 
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal" id="btn_close_modal_filter"> Cerrar </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main_content %}
+
+{% block scripts %}
+<script src="{% static 'js/products/list.js' %}"></script>
+{% endblock scripts %}

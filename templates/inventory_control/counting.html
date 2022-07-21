@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_description %}
+conteo de inventario
+{% endblock meta_description %}
+
+{% block title %}
+Conteo de inventario
+{% endblock title %}
+
+{% block additional_links %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock additional_links %}
+
+{% block main_content %}
+<div id="app_inventory_count" style="padding: 0px 75px;">
+    <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
+        <h1 class="display-4 fw-normal mb-2"> Conteos de inventario </h1>
+    </div>
+
+    <!-- PAGE-HEADER -->
+    <div class="page-header">
+        <div class="pageheader-btn">
+            <a class="btn btn-primary btn-icon text-white me-2" data-bs-effect="effect-scale" data-bs-toggle="modal" href="#create_inventory_count_modal">
+                <span>
+                    <i class="fe fe-plus"></i>
+                </span> Agregar conteo
+            </a>
+            <a data-bs-effect="effect-scale" data-bs-toggle="modal" href="#filter-inventory-count" class="btn btn-warning btn-icon text-white me-2">
+                <span>
+                    <i class="fa fa-filter"></i>
+                </span> Filtros
+            </a>
+            <button @click.prevent="generateReport" class="btn btn-info btn-icon text-white me-2">
+                <span>
+                    <i class="fa fa-file-excel-o"></i>
+                </span> Exportar
+            </button>
+            <button type="button" href="#" class="btn btn-secondary btn-icon text-white"
+                    v-if="filtersActive" @click.prevent="cleanFilters">
+                <span>
+                    <i class="fa fa-refresh"></i>
+                </span> Limpiar filtro
+            </button>
+            <!-- <button type="button" class="btn btn-primary" > Limpiar filtro </button> -->
+            
+        </div>
+    </div>
+    <!-- PAGE-HEADER END -->
+    <!-- Table -->
+    <div class="row">
+        <div class="col-lg-12 col-md-12">
+            <div class="card cart">
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm table-vcenter text-nowrap">
+                            <thead>
+                                <tr class="border-top">
+                                    <th> SKU </th>
+                                    <th> Producto </th>
+                                    <th> Estado </th>
+                                    <th> Tipo almacenamiento </th>
+                                    <th> Cantidad </th>
+                                    <th> UDM </th>
+                                    <th> Fecha de ingreso </th>
+                                    <th> Acciones </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(item, index) in inventoryCounts" :key="index">
+                                    <td> { item.product.sku } </td>
+                                    <td> { item.product.description } </td>
+                                    <td> { item.product_status.name } </td>
+                                    <td class="w-8"> { item.storage_type.name } </td>
+                                    <td> { item.amount } </td>
+                                    <td> { item.measurement_unit.name } </td>
+                                    <td class="w-10"> { item.entry_date } </td>
+                                    <td>
+                                        <button type="button" class="modal-effect btn btn-info-light btn-square br-50 m-1" 
+                                                data-bs-effect="effect-scale" data-bs-toggle="modal" data-bs-target="#inventoryCount"
+                                                @click.prevent="inventoryCountDetail(item.id, 'detail')">
+                                            <i class="fe fe-eye" style="font-size: 15px;cursor: pointer;"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-primary-light btn-square br-50 m-1" 
+                                                data-bs-effect="effect-scale" data-bs-toggle="modal" data-bs-target="#inventoryCount"
+                                                @click.prevent="inventoryCountDetail(item.id, 'edit')">
+                                            <i class="fa fa-edit" style="font-size: 15px"></i>
+                                        </button>
+                                        <a href="#" class="btn btn-danger-light btn-square br-50 m-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Ver conteos">
+                                            <i class="fa fa-trash" style="font-size: 15px"></i>
+                                        </a>
+                                        
+                                    </td>
+                                </tr>        
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit/Detail Inventory Count -->
+    <div class="modal fade modal-with-effect" id="inventoryCount" tabindex="-1" data-bs-backdrop="static" >
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title fw-bold" v-if="isDetail"> Detalle de conteo </h4>
+                    <h4 class="modal-title fw-bold" v-else> Editar conteo </h4>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" ><span aria-hidden="true">&times;</span></button>
+                </div>
+                <form id="form_inventory_count" @submit.prevent="editInventoryCount" >
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> Fecha de conteo </label>
+                                        <input type="text" id="txt_entry_date_2" name="entry_date" class="form-control" required :disabled="isDetail">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Tipo de almacenaje </label>
+                                        <select name="storage_type" id="slc_storage_type" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.storage_type.id" >
+                                            {% for storage in storage_types %}
+                                            <option value="{{ storage.id }}"> {{ storage.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Número </label>
+                                        <select name="storage_position" id="slc_storage_position" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.storage_position">
+                                            <option :value="item" v-for="item in 10" :key="item"> { item } </option>    
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Nivel </label>
+                                        <select name="level" id="slc_level" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.level" >
+                                            <option :value="item" v-for="item in 10" :key="item"> { item } </option>    
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Posición </label>
+                                        <select name="position" id="slc_position" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.position" >
+                                            <option :value="item" v-for="item in 50" :key="item"> { item } </option>    
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Lado </label>
+                                        <select name="side" id="slc_side" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.side.id" >
+                                            {% for side in sides %}
+                                            <option value="{{ side.id }}"> {{ side.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <hr style="background: black;height: 2px;"/>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Artículo </label>
+                                        <select name="product" id="slc_product1" class="form-select" required  :disabled="isDetail">
+                                            {% for product in products %}
+                                            <option value="{{ product.id }}"> {{ product.description }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"> Uni. de medida </label>
+                                        <select name="measurement_unit" id="slc_measurement_unit" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.measurement_unit.id">
+                                            {% for unit in measurement_units %}
+                                            <option value="{{ unit.id }}"> {{ unit.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> Estado del producto</label>
+                                        <select name="product_status" id="slc_product_status" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.product_status.id">
+                                            {% for status in product_status %}
+                                            <option value="{{ status.id }}"> {{ status.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                        
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> Cantidad </label>
+                                        <input type="number" min="1" name="amount" class="form-control" required v-model="inventoryCountSelected.amount" :readonly="isDetail">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> Fecha de expiración </label>
+                                        <input type="text" id="txt_expiration_date_2" name="expiration_date" class="form-control" required :disabled="isDetail">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="submit" v-show="!isDetail"> Editar </button> 
+                        <button class="btn btn-light" type="button" data-bs-dismiss="modal" id="btn_close_inventory_count_detail" @click.prevent="closeInventoryCountModal"> Cerrar </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal create Inventory Count -->
+    {% include "inventory_control/components/create_inventory_count_modal.html" %}
+
+    <div class="modal fade"  id="filter-inventory-count">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content modal-content-demo">
+                <div class="modal-header">
+                    <h6 class="modal-title"> Filtros </h6>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" ><span aria-hidden="true">&times;</span></button>
+                </div>
+                <form id="form_filter_inventory_counts" @submit.prevent="filterInventoryCounts">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-primary" v-if="filtersActive" @click.prevent="cleanFilters"> Limpiar filtro </button>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="txt_sku" class="form-label"> SKU </label>
+                                        <input type="text" class="form-control" id="txt_sku" name="sku" placeholder="Ingrese sku del producto">
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="" class="form-label"> Estado </label>
+                                        <select name="product_status" id="slc_product_status" class="form-select">
+                                            <option value="" selected> Selecciona una opcíon </option>
+                                            {% for state in product_states %}
+                                            <option value="{{ state.id }}"> {{ state.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label for="" class="form-label"> Unidad de medidad </label>
+                                        <select name="measurement_unit" id="slc_measurement_unit" class="form-select">
+                                            <option value="" selected> Selecciona una opcíon </option>
+                                            {% for unit in measurement_units %}
+                                            <option value="{{ unit.id }}"> {{ unit.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label"> Tipo de almacenaje </label>
+                                        <select name="storage_type" id="slc_storage_type" class="form-select">
+                                            <option value="" selected> Selecciona una opcíon </option>
+                                            {% for storage in storage_types %}
+                                            <option value="{{ storage.id }}"> {{ storage.name }} </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> Fecha de conteo </label>
+                                        <input type="text" id="txt_filter_entry_date" name="entry_date" class="form-control">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label"> Fecha finalización </label>
+                                        <input type="text" id="txt_filter_end_date" name="end_date" class="form-control">
+                                        <small> Si ingresa una fecha se filtrará por rango </small>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" > Filtrar </button> 
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal" id="btn_close_modal_filter"> Cerrar </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+</div>
+{% endblock main_content %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script type="module" src="{% static 'js/inventory_control/inventory_count.js' %}"></script>
+{% endblock scripts %}

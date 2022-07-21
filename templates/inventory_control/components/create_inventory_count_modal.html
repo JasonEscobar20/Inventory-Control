@@ -1,0 +1,103 @@
+<div class="modal fade modal-with-effect" id="create_inventory_count_modal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title fw-bold"> Agregar conteo </h4>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" ><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form id="form_add_inventory_count" @submit.prevent="addInventoryCounter">
+                <input type="hidden" name="creator" value="{{ user.id }}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label"> Tipo de almacenaje </label>
+                                    <select name="storage_type" id="slc_storage_type" class="form-select" required>
+                                        {% for storage in storage_types %}
+                                        <option value="{{ storage.id }}" :selected="{{ storage.id }} == {{ last_position.storage_type }}"> {{ storage.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"> Número </label>
+                                    <select name="storage_position" id="slc_storage_position" class="form-select" required>
+                                        <option :value="item" v-for="item in 10" :key="item" :selected="item == {{ last_position.storage_position }}"> { item } </option>    
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"> Nivel </label>
+                                    <select name="level" id="slc_level" class="form-select" required>
+                                        <option :value="item" v-for="item in 10" :key="item" :selected="item == {{ last_position.level }}"> { item } </option>    
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label"> Posición </label>
+                                    <select name="position" id="slc_position" class="form-select" required>
+                                        <option :value="item" v-for="item in 50" :key="item" :selected="item == {{ last_position.position }}"> { item } </option>    
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"> Lado </label>
+                                    <select name="side" id="slc_side" class="form-select" required>
+                                        {% for side in sides %}
+                                        <option value="{{ side.id }}" :selected="{{ side.id }} == {{ last_position.side }}"> {{ side.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <hr style="background: black;height: 2px;"/>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label"> Artículo </label>
+                                    <select name="product" id="slc_product" class="form-select" required>
+                                        {% for product in products %}
+                                        <option value="{{ product.id }}"> {{ product.sku }} {{ product.description }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"> Uni. de medida </label>
+                                    <select name="measurement_unit" id="slc_measurement_unit" class="form-select" required>
+                                        {% for unit in measurement_units %}
+                                        <option value="{{ unit.id }}"> {{ unit.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"> Estado del producto</label>
+                                    <select name="product_status" id="slc_product_status" class="form-select" required>
+                                        {% for status in product_status %}
+                                        <option value="{{ status.id }}"> {{ status.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                    
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"> Cantidad </label>
+                                    <input type="number" min="1" name="amount" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"> Fecha de expiración </label>
+                                    <input type="text" id="txt_expiration_date" name="expiration_date" class="form-control" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"> Fecha de conteo </label>
+                                    <input type="text" id="txt_entry_date" name="entry_date" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" type="submit"> Agregar </button> 
+                    <button class="btn btn-light" type="button" data-bs-dismiss="modal" id="btn_close_add_inventory_count"> Cerrar </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
