@@ -18186,7 +18186,6 @@ img {
     background-size: cover;
     display: inline-table;
 }
-}
 
 .profie-img .flex-md-row img {
     width: 60px;
@@ -23952,9 +23951,9 @@ svg {
 /*-----Feather icons-----*/
 @font-face {
     font-family: "feather";
-    src: url("../fonts/feather-webfont.eot?t=1501841394106");
+    src: url("../assets/iconfonts/feather/feather-webfont.eot?t=1501841394106");
     /* IE9*/
-    src: url("../fonts/feather-webfont.eot?t=1501841394106#iefix") format("embedded-opentype"), url("../fonts/feather-webfont.woff?t=1501841394106") format("woff"), url("../fonts/feather-webfont.ttf?t=1501841394106") format("truetype"), url("../fonts/feather-webfont.svg?t=1501841394106#feather") format("svg");
+    src: url("../assets/iconfonts/eather/feather-webfont.eot?t=1501841394106#iefix") format("embedded-opentype"), url("../fonts/feather/feather-webfont.woff?t=1501841394106") format("woff"), url("../fonts/feather/feather-webfont.ttf?t=1501841394106") format("truetype"), url("../fonts/feather/feather-webfont.svg?t=1501841394106#feather") format("svg");
     /* iOS 4.1- */
 }
 
