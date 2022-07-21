@@ -17541,14 +17541,6 @@ svg.table-delete {
     margin-right: 8px;
 }
 
-[class^="ri-"],
-[class*=" ri-"] {
-    font-family: 'remixicon' !important;
-    font-style: normal;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
 .ri-mail-line:before {
     content: "\eef6";
 }
