@@ -8,6 +8,7 @@ django-filter==22.1
 django-import-export==2.8.0
 djangorestframework==3.13.1
 et-xmlfile==1.1.0
+whitenoise
 gunicorn==20.1.0
 odfpy==1.4.1
 openpyxl==3.0.10
