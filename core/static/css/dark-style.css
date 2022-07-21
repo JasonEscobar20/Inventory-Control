@@ -5323,12 +5323,7 @@ body.dark-mode *:hover::-webkit-scrollbar-thumb {
     color: #28273c;
 }
 
-.dark-mode.error-bg {
-    background-image: url(../images/pngs/bg1.png);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: #22223d;
-}
+
 
 .dark-mode .accordion-button:not(.collapsed) {
     background: #272740;

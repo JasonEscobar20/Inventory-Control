@@ -17731,7 +17731,7 @@ ul.inbox-pagination li {
     margin-top: -5px;
 }
 
-.error-bg {
+/* .error-bg {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
     position: relative;
@@ -17741,7 +17741,7 @@ ul.inbox-pagination li {
     background: url(../images/pngs/bg.png);
     background-repeat: no-repeat;
     background-position: center;
-}
+} */
 
 .hor-header .header-right-icons .nav-link.icon {
     margin: 5px;
