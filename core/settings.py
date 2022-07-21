@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 import django_heroku
-django_heroku.settings(locals())
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -168,3 +168,4 @@ LOGOUT_REDIRECT_URL = 'inventory_control:inventory-index-view'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+django_heroku.settings(locals())
