@@ -5394,10 +5394,6 @@ body.dark-mode *:hover::-webkit-scrollbar-thumb {
     color: #dedefd;
 }
 
-.dark-mode .bg-patterns {
-    background: url("../images/patterns/1-dark.png");
-}
-
 .dark-mode .apexcharts-legend-text {
     color: #dedefd !important;
 }
