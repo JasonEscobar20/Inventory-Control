@@ -13,13 +13,44 @@ Lista de inventarios
 {% endblock additional_links %}
 
 {% block main_content %}
-<div class="mb-5" id="app_product_list" style="padding: 0px 75px;">
+<style>
+   @media only screen and (max-width: 1300px) {
+        #app_product_list {
+            padding: 0px 75px;
+        }
+   }
+
+   @media only screen and (max-width: 970px) {
+        #app_product_list {
+            padding: 0px 40px;
+        }
+   }
+
+   @media only screen and (max-width: 768px) {
+        .card.cart {
+            margin-top: 10px;
+        }
+   }
+
+   @media only screen and (max-width: 400px) {
+        #app_product_list {
+            padding: 0px 25px;
+        }
+        .card-body {
+            padding: .5rem .5rem
+        }
+        .card.cart {
+            margin-top: 10px;
+        }
+   }
+</style>
+<div class="mb-5" id="app_product_list" >
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
-        <h1 class="display-4 fw-normal mb-2"> Lista de inventarios </h1>
+        <h2 class="display-4 fw-normal mb-2"> Lista </h2>
     </div>
     <div class="mt-2 pb-md-4 mx-auto">
         <div class="btn-list">
-            <a href="/inventory-control/create/" class="btn btn-pill btn-primary-light"> Agregar inventario </a>
+            <a href="/inventory-control/create/" class="btn btn-pill btn-primary-light"> Agregar </a>
             <a href="#" class="btn btn-pill btn-info-light"> Filtrar </a>
         </div>
     </div>    

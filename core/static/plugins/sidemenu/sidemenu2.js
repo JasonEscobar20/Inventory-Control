@@ -21,11 +21,11 @@
     });
 
 
-    if ($(window).width() > 739) {
-        $('.app').ready(function(event) {
-            $('.app').removeClass('sidenav-toggled-open');
-        });
-    }
+    // if ($(window).width() > 739) {
+    //     $('.app').ready(function(event) {
+    //         $('.app').removeClass('sidenav-toggled-open');
+    //     });
+    // }
 
 
 

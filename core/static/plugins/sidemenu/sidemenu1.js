@@ -22,21 +22,21 @@
 	
 
 	//Mobile menu 
-	jQuery(document).ready(function($) {
-		var alterClass = function() {
-		  var ww = document.body.clientWidth;
-		  if (ww < 768) {
-			$('body').removeClass('sidenav-toggled');
-		  } else if (ww >= 767) {
-			$('body').addClass('sidenav-toggled');
-		  };
-		};
-		$(window).resize(function(){
-		  alterClass();
-		});
-		//Fire it when the page first loads:
-		alterClass();
-	  });
+	// jQuery(document).ready(function($) {
+	// 	var alterClass = function() {
+	// 	  var ww = document.body.clientWidth;
+	// 	  if (ww < 768) {
+	// 		$('body').removeClass('sidenav-toggled');
+	// 	  } else if (ww >= 767) {
+	// 		$('body').addClass('sidenav-toggled');
+	// 	  };
+	// 	};
+	// 	$(window).resize(function(){
+	// 	  alterClass();
+	// 	});
+	// 	//Fire it when the page first loads:
+	// 	alterClass();
+	//   });
 	
 	// Activate sidebar slide toggle
 	$("[data-bs-toggle='slide']").on('click', function(e) {

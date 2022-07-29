@@ -45,6 +45,7 @@ Vue.createApp({
         });
         flatpickr(document.getElementById('txt_entry_date'), {
             dateFormat: 'd-m-Y',
+            defaultDate: 'today'
         });
 
         flatpickr(document.getElementById('txt_expiration_date_2'), {

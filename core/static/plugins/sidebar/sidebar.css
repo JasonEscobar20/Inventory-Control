@@ -66,7 +66,7 @@
     transform: translate(0,0);
 }
 
-@media (min-width: 768px) {
+/* @media (min-width: 768px) {
     .row .sidebar.sidebar-left.sidebar-sm-show {
         left: 0;
         -webkit-transform: translate(0,0);
@@ -85,7 +85,7 @@
         -moz-transform: translate(0,0);
         transform: translate(0,0);
     }
-}
+} */
 
 @media (min-width: 992px) {
     .row .sidebar.sidebar-left.sidebar-md-show {

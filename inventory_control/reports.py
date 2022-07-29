@@ -59,8 +59,14 @@ class InventoryCountReport(LoginRequiredMixin, View):
             ws.cell(row=initial_row, column=2).value = item.product.category.name
             ws.cell(row=initial_row, column=3).value = item.product.description
             ws.cell(row=initial_row, column=4).value = item.amount
+            ws.cell(row=initial_row, column=5).value = item.expiration_date
+            ws.cell(row=initial_row, column=6).value = item.storage_type.name
+            ws.cell(row=initial_row, column=7).value = item.storage_position
+            ws.cell(row=initial_row, column=8).value = item.level
+            ws.cell(row=initial_row, column=9).value = item.position
+            ws.cell(row=initial_row, column=10).value = item.side.name
 
-            for column in range(1, 5):
+            for column in range(1, 11):
                 ws.cell(row=initial_row, column=column).border = border
 
             initial_row = initial_row + 1
