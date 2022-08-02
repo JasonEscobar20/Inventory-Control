@@ -14,13 +14,11 @@ Vue.createApp({
         $("#slc_employee").select2({
             width: '100%',
             placeholder: "Seleccione un empleado",
-            allowClear: true,
         });
 
         $("#slc_store").select2({
             width: '100%',
             placeholder: "Seleccione un almacen",
-            allowClear: true,
         });
         
         setTimeout(() => {

@@ -39,7 +39,6 @@ Vue.createApp({
         $("#slc_product").select2({
             width: '100%',
             placeholder: "Seleccione un producto",
-            allowClear: true,
             dropdownParent: $('#create_inventory_count_modal')
         }); 
         

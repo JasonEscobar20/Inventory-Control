@@ -10,12 +10,13 @@ Conteo de inventario
 
 {% block additional_links %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" integrity="sha256-ze/OEYGcFbPRmvCnrSeKbRTtjG4vGLHXgOqsyLFTRjg=" crossorigin="anonymous" />
 {% endblock additional_links %}
 
 {% block main_content %}
 <div id="app_inventory_count" style="padding: 0px 75px;">
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
-        <h2 class="display-4 fw-normal mb-2"> Conteos </h2>
+        <h2 class="display-4 fw-normal mb-2"> CONTEOS </h2>
     </div>
 
     <!-- PAGE-HEADER -->
@@ -289,6 +290,7 @@ Conteo de inventario
 {% endblock main_content %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js" integrity="sha256-+C0A5Ilqmu4QcSPxrlGpaZxJ04VjsRjKu+G82kl5UJk=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script type="module" src="{% static 'js/inventory_control/inventory_count.js' %}"></script>
 {% endblock scripts %}

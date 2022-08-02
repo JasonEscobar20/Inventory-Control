@@ -10,12 +10,10 @@ Vue.createApp({
         $("#slc_warehouse").select2({
             width: '100%',
             placeholder: "Seleccione una bodega",
-            allowClear: true,
         });
         $("#slc_employee").select2({
             width: '100%',
             placeholder: "Seleccione un empleado",
-            allowClear: true,
         }); 
     },
     methods: {

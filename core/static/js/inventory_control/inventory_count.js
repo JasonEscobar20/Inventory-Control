@@ -26,19 +26,19 @@ Vue.createApp({
     mounted() {
         this.getInventoryCounts();
 
-        $("#slc_product").select2({
-            width: '100%',
-            placeholder: "Seleccione un producto",
-            allowClear: true,
-            dropdownParent: $('#create_inventory_count_modal')
-        }); 
-
-        $("#slc_product1").select2({
-            width: '100%',
-            placeholder: "Seleccione un producto",
-            allowClear: true,
-            dropdownParent: $('#create_inventory_count_modal')
-        }); 
+        setTimeout(() => {
+            $("#slc_product").select2({
+                width: '100%',
+                placeholder: "Seleccione un producto",
+                dropdownParent: $('#create_inventory_count_modal')
+            }); 
+                
+            $("#slc_product1").select2({
+                width: '100%',
+                placeholder: "Seleccione un producto",
+                dropdownParent: $('#create_inventory_count_modal')
+            }); 
+        }, 500);
 
         flatpickr(document.getElementById('txt_expiration_date'), {
             dateFormat: 'd-m-Y',

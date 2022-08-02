@@ -10,7 +10,6 @@ Vue.createApp({
         $("#slc_category").select2({
             width: '100%',
             placeholder: "Seleccione una categoría",
-            allowClear: true,
         });
         
     },
