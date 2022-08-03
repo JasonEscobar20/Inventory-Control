@@ -51,9 +51,10 @@
                                     <hr style="background: black;height: 2px;"/>
                                 </div>
                                 
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <label class="form-label"> Artículo </label>
                                     <select name="product" id="slc_product" required>
+                                        <option value="" selected></option>
                                         {% for product in products %}
                                         <option value="{{ product.id }}"> {{ product.sku }} {{ product.description }} </option>
                                         {% endfor %}

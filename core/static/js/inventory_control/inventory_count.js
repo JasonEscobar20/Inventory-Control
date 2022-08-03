@@ -27,11 +27,14 @@ Vue.createApp({
         this.getInventoryCounts();
 
         setTimeout(() => {
-            $("#slc_product").select2({
-                width: '100%',
-                placeholder: "Seleccione un producto",
-                dropdownParent: $('#create_inventory_count_modal')
-            }); 
+            // $("#slc_product").select2({
+            //     width: '100%',
+            //     placeholder: "Seleccione un producto",
+            //     dropdownParent: $('#create_inventory_count_modal')
+            // }); 
+            $("#slc_product").selectize({
+                sortField: "text",
+              });
                 
             $("#slc_product1").select2({
                 width: '100%',
@@ -211,19 +214,22 @@ Vue.createApp({
             let filterForm = document.getElementById('form_filter_inventory_counts');
             let filtersFormData = new FormData(filterForm);
 
+            
+
             if (this.filtersActive){
                 for (let item of filtersFormData.entries()){
+                    console.log(item)
                     let key = item[0];
                     let value = item[1];
 
                     if (value != '' && key != 'csrfmiddlewaretoken'){
                         params[key] = value;
                     }
-                }
+                }   
             }
             // document.getElementById('btn_generate_report').classList.add('running');
             // document.getElementById('btn_generate_report').setAttribute('disabled', true);
-           
+            params['inventory_id'] = this.inventoryId;
 
             axios({
                 url: `/inventory-control/generate/inventory_count/report/`,

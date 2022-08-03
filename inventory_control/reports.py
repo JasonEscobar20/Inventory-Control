@@ -11,7 +11,7 @@ from openpyxl import load_workbook
 from openpyxl.styles.colors import BLACK
 from openpyxl.styles import Border, Side
 
-from inventory_control.models import InventoryCount
+from inventory_control.models import InventoryCount, Inventory
 
 
 class InventoryCountReport(LoginRequiredMixin, View):
@@ -20,6 +20,10 @@ class InventoryCountReport(LoginRequiredMixin, View):
         filter_data = {}
         entry_date = params.get('entry_date', '')
         end_date = params.get('end_date', '')
+        inventory_id = params.get('inventory_id', '')
+
+        inventory_instance = Inventory.objects.get(id=inventory_id)
+        inventory_counts = inventory_instance.inventory_records.all()
 
         for key, value in params.items():
             if value != '':
@@ -38,7 +42,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
         if entry_date != '' and end_date != '':
             filter_data['entry_date__range'] = [entry_date, end_date]
 
-        inventory_counts = InventoryCount.objects.filter(**filter_data)
+        inventory_counts = inventory_counts.filter(**filter_data)
 
         # os.chdir('/home/admin/server')
 
@@ -55,18 +59,29 @@ class InventoryCountReport(LoginRequiredMixin, View):
 
         for item in inventory_counts:
 
-            ws.cell(row=initial_row, column=1).value = item.product.sku
-            ws.cell(row=initial_row, column=2).value = item.product.category.name
-            ws.cell(row=initial_row, column=3).value = item.product.description
-            ws.cell(row=initial_row, column=4).value = item.amount
-            ws.cell(row=initial_row, column=5).value = item.expiration_date
-            ws.cell(row=initial_row, column=6).value = item.storage_type.name
-            ws.cell(row=initial_row, column=7).value = item.storage_position
-            ws.cell(row=initial_row, column=8).value = item.level
-            ws.cell(row=initial_row, column=9).value = item.position
-            ws.cell(row=initial_row, column=10).value = item.side.name
+            
+            
 
-            for column in range(1, 11):
+            ws.cell(row=initial_row, column=1).value = item.inventory.store.username
+            ws.cell(row=initial_row, column=2).value = item.inventory.employee.first_name
+            ws.cell(row=initial_row, column=3).value = item.entry_date
+            ws.cell(row=initial_row, column=4).value = item.inventory.warehouse.name
+            ws.cell(row=initial_row, column=5).value = item.storage_type.name
+            ws.cell(row=initial_row, column=6).value = item.storage_position
+            ws.cell(row=initial_row, column=7).value = item.level
+            ws.cell(row=initial_row, column=8).value = item.position
+            ws.cell(row=initial_row, column=9).value = item.side.name
+            ws.cell(row=initial_row, column=10).value = item.product.description
+            ws.cell(row=initial_row, column=11).value = item.product.sku
+            ws.cell(row=initial_row, column=12).value = item.product.category.name
+            ws.cell(row=initial_row, column=13).value = item.product.type.name
+
+            ws.cell(row=initial_row, column=14).value = item.amount
+            ws.cell(row=initial_row, column=15).value = item.measurement_unit.name
+            ws.cell(row=initial_row, column=16).value = item.expiration_date
+            ws.cell(row=initial_row, column=17).value = item.product_status.name
+
+            for column in range(1, 18):
                 ws.cell(row=initial_row, column=column).border = border
 
             initial_row = initial_row + 1
