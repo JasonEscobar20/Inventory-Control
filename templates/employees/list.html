@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 {% block meta_description %}
-Lista de empleados
+Lista de colaboradores
 {% endblock meta_description %}
 
 {% block title %}
-Lista de empleados
+Lista de colaboradores
 {% endblock title %}
 
 {% block main_content %}
@@ -16,6 +16,10 @@ Lista de empleados
     <div class="mt-2 pb-md-4 mx-auto">
         <div class="btn-list">
             <a href="/employees/create/" class="btn btn-pill btn-primary-light"> Agregar </a>
+            <div class="btn-group">
+                <a href="/employees/download/?format=xlsx" class="btn btn-pill btn-success-light"> Descargar (Excel) </a>
+                <a href="/employees/download/?format=csv" class="btn btn-pill btn-info-light"> CSV </a>
+            </div>
         </div>
     </div>    
 
@@ -37,6 +41,12 @@ Lista de empleados
                         <a href="/employees/update/{{ employee.id }}/" class="text-dark">
                             <i class="fa fa-edit"></i>
                         </a>
+                        <form method="post" action="/employees/delete/{{ employee.id }}/" style="display:inline-block; margin-left:8px;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Desea eliminar este colaborador?');" title="Eliminar">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
                     </td>
                 </tr>  
                 {% endfor %}      

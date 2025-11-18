@@ -27,6 +27,16 @@ Conteo de inventario
                     <i class="fe fe-plus"></i>
                 </span> Agregar conteo
             </a>
+            
+            {% if inventory.status == 1 %}
+            <button class="btn btn-outline-primary btn-icon me-2" @click.prevent="finalizeInventory">
+                <span><i class="fa fa-flag-checkered"></i></span> Finalizar
+            </button>
+            {% elif inventory.status == 2 %}
+            <button class="btn btn-outline-success btn-icon me-2" @click.prevent="confirmInventory">
+                <span><i class="fa fa-check"></i></span> Confirmar
+            </button>
+            {% endif %}
             <a data-bs-effect="effect-scale" data-bs-toggle="modal" href="#filter-inventory-count" class="btn btn-warning btn-icon text-white me-2">
                 <span>
                     <i class="fa fa-filter"></i>
@@ -46,6 +56,9 @@ Conteo de inventario
             <!-- <button type="button" class="btn btn-primary" > Limpiar filtro </button> -->
             
         </div>
+        <div>
+            <span class="badge bg-secondary me-2">Estado: {{ inventory.get_status_display }}</span>
+        </div>
     </div>
     <!-- PAGE-HEADER END -->
     <!-- Table -->
@@ -63,8 +76,6 @@ Conteo de inventario
                                     <th> Estado </th>
                                     <th> Tipo almacenamiento </th>
                                     <th> Cantidad </th>
-                                    <th> UDM </th>
-                                    <th> Fecha de ingreso </th>
                                     <th> Acciones </th>
                                 </tr>
                             </thead>
@@ -75,8 +86,6 @@ Conteo de inventario
                                     <td> { item.product_status.name } </td>
                                     <td class="w-8"> { item.storage_type.name } </td>
                                     <td> { item.amount } </td>
-                                    <td> { item.measurement_unit.name } </td>
-                                    <td class="w-10"> { item.entry_date } </td>
                                     <td>
                                         <button type="button" class="modal-effect btn btn-info-light btn-square br-50 m-1" 
                                                 data-bs-effect="effect-scale" data-bs-toggle="modal" data-bs-target="#inventoryCount"
@@ -111,16 +120,13 @@ Conteo de inventario
                     <h4 class="modal-title fw-bold" v-else> Editar conteo </h4>
                     <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" ><span aria-hidden="true">&times;</span></button>
                 </div>
+                
                 <form id="form_inventory_count" @submit.prevent="editInventoryCount" >
                     {% csrf_token %}
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-12 col-md-12">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label"> Fecha de conteo </label>
-                                        <input type="text" id="txt_entry_date_2" name="entry_date" class="form-control" required :disabled="isDetail">
-                                    </div>
                                     <div class="col-md-6">
                                         <label class="form-label"> Tipo de almacenaje </label>
                                         <select name="storage_type" id="slc_storage_type" class="form-select" required :disabled="isDetail"
@@ -131,10 +137,10 @@ Conteo de inventario
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label"> Número </label>
-                                        <select name="storage_position" id="slc_storage_position" class="form-select" required :disabled="isDetail"
-                                                v-model="inventoryCountSelected.storage_position">
-                                            <option :value="item" v-for="item in 10" :key="item"> { item } </option>    
+                                        <label class="form-label"> Letra </label>
+                                        <select name="position_letter" id="slc_position_letter" class="form-select" required :disabled="isDetail"
+                                                v-model="inventoryCountSelected.position_letter">
+                                            <option :value="item" v-for="item in 'ABCDEFGHIJKLMN'" :key="item"> { item } </option>    
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -152,15 +158,6 @@ Conteo de inventario
                                             <option :value="item" v-for="item in 50" :key="item"> { item } </option>    
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label"> Lado </label>
-                                        <select name="side" id="slc_side" class="form-select" required :disabled="isDetail"
-                                                v-model="inventoryCountSelected.side.id" >
-                                            {% for side in sides %}
-                                            <option value="{{ side.id }}"> {{ side.name }} </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
                                     <div class="col-md-12">
                                         <hr style="background: black;height: 2px;"/>
                                     </div>
@@ -169,15 +166,6 @@ Conteo de inventario
                                         <select name="product" id="slc_product1" class="form-select" required  :disabled="isDetail">
                                             {% for product in products %}
                                             <option value="{{ product.id }}"> {{ product.description }} </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label"> Uni. de medida </label>
-                                        <select name="measurement_unit" id="slc_measurement_unit" class="form-select" required :disabled="isDetail"
-                                                v-model="inventoryCountSelected.measurement_unit.id">
-                                            {% for unit in measurement_units %}
-                                            <option value="{{ unit.id }}"> {{ unit.name }} </option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -191,13 +179,21 @@ Conteo de inventario
                                         </select>
                                         
                                     </div>
+                                    <div class="col-md-6 mb-3" id="damage_image_wrapper_edit" style="display:none;" v-show="!isDetail">
+                                        <label class="form-label"> Evidencia (imagen) </label>
+        
+                                        <input type="file" name="image" id="inp_damage_image_edit" accept="image/*" class="form-control" :disabled="isDetail" />
+                                        <small class="text-muted">Obligatoria si estado es Roto o Dañado.</small>
+                                    </div>
+                                    <div class="col-md-12 mb-3" v-if="isDetail && inventoryCountSelected.image">
+                                        <label class="form-label"> Evidencia </label>
+                                        <div>
+                                            <img :src="inventoryCountSelected.image" alt="Evidencia" class="img-thumbnail" style="max-height: 220px;">
+                                        </div>
+                                    </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label"> Cantidad </label>
                                         <input type="number" min="1" name="amount" class="form-control" required v-model="inventoryCountSelected.amount" :readonly="isDetail">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label"> Fecha de expiración </label>
-                                        <input type="text" id="txt_expiration_date_2" name="expiration_date" class="form-control" required :disabled="isDetail">
                                     </div>
                                 </div>
                             </div>
@@ -214,7 +210,7 @@ Conteo de inventario
     </div>
 
     <!-- Modal create Inventory Count -->
-    {% include "inventory_control/components/create_inventory_count_modal.html" %}
+    {% include "inventory_control/components/create_inventory_count_modal.html"  %}
 
     <div class="modal fade"  id="filter-inventory-count">
         <div class="modal-dialog" role="document">
@@ -240,20 +236,12 @@ Conteo de inventario
                                         <label for="" class="form-label"> Estado </label>
                                         <select name="product_status" id="slc_product_status" class="form-select">
                                             <option value="" selected> Selecciona una opcíon </option>
-                                            {% for state in product_states %}
+                                            {% for state in product_status %}
                                             <option value="{{ state.id }}"> {{ state.name }} </option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-md-12">
-                                        <label for="" class="form-label"> Unidad de medidad </label>
-                                        <select name="measurement_unit" id="slc_measurement_unit" class="form-select">
-                                            <option value="" selected> Selecciona una opcíon </option>
-                                            {% for unit in measurement_units %}
-                                            <option value="{{ unit.id }}"> {{ unit.name }} </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
+
                                     <div class="col-md-12">
                                         <label class="form-label"> Tipo de almacenaje </label>
                                         <select name="storage_type" id="slc_storage_type" class="form-select">
@@ -263,16 +251,6 @@ Conteo de inventario
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label"> Fecha de conteo </label>
-                                        <input type="text" id="txt_filter_entry_date" name="entry_date" class="form-control">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label"> Fecha finalización </label>
-                                        <input type="text" id="txt_filter_end_date" name="end_date" class="form-control">
-                                        <small> Si ingresa una fecha se filtrará por rango </small>
-                                    </div>
-
                                 </div>
                             </div>
                         </div>
@@ -294,4 +272,31 @@ Conteo de inventario
 <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.6/js/selectize.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script type="module" src="{% static 'js/inventory_control/inventory_count.js' %}"></script>
+<script>
+    (function(){
+        const editStatusSelect = document.querySelector('#inventoryCount #slc_product_status');
+        const editWrapper = document.getElementById('damage_image_wrapper_edit');
+        const editInput = document.getElementById('inp_damage_image_edit');
+        function isDamaged(text){
+            const t = (text || '').toLowerCase();
+            return t.includes('roto') || t.includes('dañado') || t.includes('danado');
+        }
+        function toggle(){
+            if(!editStatusSelect || !editWrapper || !editInput) return;
+            const text = editStatusSelect.options[editStatusSelect.selectedIndex]?.text || '';
+            if(isDamaged(text)){
+                editWrapper.style.display = 'block';
+                editInput.setAttribute('required','required');
+            } else {
+                editWrapper.style.display = 'none';
+                editInput.removeAttribute('required');
+                editInput.value = '';
+            }
+        }
+        if (editStatusSelect){
+            editStatusSelect.addEventListener('change', toggle);
+            setTimeout(toggle, 400);
+        }
+    })();
+</script>
 {% endblock scripts %}

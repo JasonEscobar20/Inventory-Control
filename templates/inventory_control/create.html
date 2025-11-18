@@ -42,14 +42,14 @@ Iniciar inventario
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label for="slc_store" class="form-label"> Almacen </label>
+                        <label for="slc_store" class="form-label"> Sucursal </label>
                         <select class="form-select" id="slc_store" name="store" required>
                         <option value="{{ request.user.id }}" selected> {{ request.user.username }} </option>
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label for="slc_store" class="form-label"> Descripción </label>
-                        <textarea class="form-control" name="description" id="txt_description" cols="30" rows="5"></textarea>
+                        <label for="txt_inventory_date" class="form-label"> Fecha de inventario </label>
+                        <input type="date" class="form-control" id="txt_inventory_date" name="inventory_date" required>
                     </div>
                 </div>
                 

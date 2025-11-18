@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+{% block meta_description %}
+Carga masiva de productos
+{% endblock meta_description %}
+
+{% block title %}
+Carga masiva de productos
+{% endblock title %}
+
+{% block main_content %}
+<div class="mb-5" style="padding: 0px 75px;">
+  <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
+    <h2 class="display-4 fw-normal mb-2"> CARGA MASIVA DE PRODUCTOS </h2>
+    <p>Sube un archivo CSV o Excel (.xlsx) con columnas: sku, description, brand, country</p>
+  </div>
+
+  {% if messages %}
+  <div>
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card p-4">
+    <form id="upload_form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Archivo</label>
+        <input type="file" class="form-control" name="file" accept=".csv, .xlsx" required />
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" value="on" id="create_brands" name="create_brands">
+        <label class="form-check-label" for="create_brands">
+          Crear marca si no existe
+        </label>
+      </div>
+      <div class="btn-list">
+        <a href="/products/list/" class="btn btn-pill btn-warning">Cancelar</a>
+        <button id="btn_submit" type="submit" class="btn btn-pill btn-success">
+          <span class="submit-text">Procesar archivo</span>
+          <span class="submit-spinner spinner-border spinner-border-sm ms-2" style="display:none;" role="status" aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Overlay loader -->
+  <div id="upload_loader" style="position:fixed; inset:0; background:rgba(255,255,255,0.75); display:none; z-index:1050;">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center;">
+      <div class="spinner-border text-primary" role="status" style="width:3rem; height:3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <div class="mt-3 fw-semibold">Procesando archivo, por favor espera...</div>
+    </div>
+  </div>
+
+  {% if created_count is not None %}
+  <div class="mt-4">
+    <h4>Resumen</h4>
+    <ul>
+      <li>Creados: {{ created_count }}</li>
+      <li>Actualizados: {{ updated_count }}</li>
+      <li>Errores: {{ errors|length }}</li>
+    </ul>
+    {% if errors %}
+      <div class="alert alert-warning">
+        <ul>
+          {% for err in errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock main_content %}
+
+{% block scripts %}
+<script>
+  (function(){
+    const form = document.getElementById('upload_form');
+    const btn = document.getElementById('btn_submit');
+    const loader = document.getElementById('upload_loader');
+    const spinner = btn.querySelector('.submit-spinner');
+    const btnText = btn.querySelector('.submit-text');
+    if (!form) return;
+
+    form.addEventListener('submit', function(){
+      // Show overlay loader and disable submit to avoid double clicks
+      if (loader) loader.style.display = 'block';
+      if (spinner) spinner.style.display = 'inline-block';
+      if (btnText) btnText.textContent = 'Procesando...';
+      btn.setAttribute('disabled', 'disabled');
+    });
+  })();
+  </script>
+{% endblock scripts %}

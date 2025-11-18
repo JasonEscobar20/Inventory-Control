@@ -18,7 +18,6 @@ class InventoryCountReport(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         params = request.GET
         filter_data = {}
-        entry_date = params.get('entry_date', '')
         end_date = params.get('end_date', '')
         inventory_id = params.get('inventory_id', '')
 
@@ -31,16 +30,9 @@ class InventoryCountReport(LoginRequiredMixin, View):
                     filter_data['product__sku'] = value
                 if key == 'product_status':
                     filter_data['product_status'] = value
-                if key == 'measurement_unit':
-                    filter_data['measurement_unit'] = value
                 if key == 'storage_type':
                     filter_data['storage_type'] = value
 
-        if entry_date != '' and end_date == '':
-            filter_data['entry_date'] = entry_date
-        
-        if entry_date != '' and end_date != '':
-            filter_data['entry_date__range'] = [entry_date, end_date]
 
         inventory_counts = inventory_counts.filter(**filter_data)
 
@@ -67,18 +59,16 @@ class InventoryCountReport(LoginRequiredMixin, View):
             ws.cell(row=initial_row, column=3).value = item.entry_date
             ws.cell(row=initial_row, column=4).value = item.inventory.warehouse.name
             ws.cell(row=initial_row, column=5).value = item.storage_type.name
-            ws.cell(row=initial_row, column=6).value = item.storage_position
+            # ws.cell(row=initial_row, column=6).value = item.storage_position
             ws.cell(row=initial_row, column=7).value = item.level
             ws.cell(row=initial_row, column=8).value = item.position
-            ws.cell(row=initial_row, column=9).value = item.side.name
             ws.cell(row=initial_row, column=10).value = item.product.description
             ws.cell(row=initial_row, column=11).value = item.product.sku
             ws.cell(row=initial_row, column=12).value = item.product.category.name
             ws.cell(row=initial_row, column=13).value = item.product.type.name
 
             ws.cell(row=initial_row, column=14).value = item.amount
-            ws.cell(row=initial_row, column=15).value = item.measurement_unit.name
-            ws.cell(row=initial_row, column=16).value = item.expiration_date
+
             ws.cell(row=initial_row, column=17).value = item.product_status.name
 
             for column in range(1, 18):

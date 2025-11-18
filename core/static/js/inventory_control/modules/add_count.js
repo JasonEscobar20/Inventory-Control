@@ -2,13 +2,6 @@ const addInventoryCount = (inventoryId, refreshInventoryCount) => {
     let formInventoryCount = document.getElementById('form_add_inventory_count');
     let inventoryCountFormData = new FormData(formInventoryCount);
 
-    let expirationDate = inventoryCountFormData.get('expiration_date');
-    let entryDate = inventoryCountFormData.get('entry_date');
-    let formatExpirationDate = moment(expirationDate, 'DD-MM-Y').format('Y-MM-DD');
-    let formatEntryDate = moment(entryDate, 'DD-MM-Y').format('Y-MM-DD');
-
-    inventoryCountFormData.set('entry_date', formatEntryDate);
-    inventoryCountFormData.set('expiration_date', formatExpirationDate);
     inventoryCountFormData.append('inventory', inventoryId);
 
     axios.post(`/inventory-control/api/count/create/`, inventoryCountFormData)

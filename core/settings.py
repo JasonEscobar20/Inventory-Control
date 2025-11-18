@@ -14,9 +14,17 @@ import os
 import dj_database_url
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-# BASE_DIR = Path(__file__).resolve().parent.parent
+import environ
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+env = environ.Env()
+env_file = os.path.join(BASE_DIR, '.env')
+
+if os.path.isfile(env_file):
+    env.read_env(env_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -27,7 +35,9 @@ SECRET_KEY = 'django-insecure-z%&28il#ysh9#3!v$$9j3q0(xj)ge*3qcsf-qy!^s(-xntab+o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['inventory-control-ngrt.onrender.com', 'localhost']
+# ALLOWED_HOSTS = ['inventory-control-ngrt.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ["*"]  
+CSRF_TRUSTED_ORIGINS = ["https://*.fly.dev"] 
 
 
 # Application definition
@@ -38,19 +48,23 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    "whitenoise.runserver_nostatic",
     'django.contrib.staticfiles',
     'import_export',
     'rest_framework',
 
+    'geo',
     'inventory_control',
     'products',
     'employees',
+    
 ]
 
 MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -103,8 +117,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
-    'default': dj_database_url.parse('postgresql://django_db_tj7g_user:XybaqdNMTPgHFxx2dVauCSfX0fASd1w2@dpg-csr69upu0jms73cj3r80-a.oregon-postgres.render.com/django_db_tj7g')
+    "default": env.db_url("DATABASE_URL", default="sqlite:///db.sqlite3"),
 }
 
 

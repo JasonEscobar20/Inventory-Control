@@ -17,6 +17,7 @@ Lista de productos
         <div class="btn-list">
             <a href="/products/create/" class="btn btn-pill btn-primary-light"> Agregar producto </a>
             <a href="#"  data-bs-target="#modaldemo1" data-bs-toggle="modal" class="btn btn-pill btn-info-light"> Filtrar </a>
+            <a href="/products/bulk-upload/" class="btn btn-pill btn-success-light"> Carga masiva </a>
         </div>
     </div>    
 
@@ -25,23 +26,13 @@ Lista de productos
             <thead class="table-primary">
                 <th> SKU </th>
                 <th> Descripción </th>
-                <th> Categoría </th>
-                <th> Tipo de artículo </th>
-                <th> Activo </th>
-                <th>  </th>
+                <th> Marca </th>
             </thead>
             <tbody>
                 <tr v-for="(product, index) in products" :key="index">
                     <td> { product.sku } </td>
                     <td> { product.description } </td>
-                    <td> { product.category } </td>
-                    <td> { product.type } </td>
-                    <td> { product.active ? "Activo"  : "Inactivo" } </td>
-                    <td>
-                        <a :href="product.absolute_url" class="text-dark">
-                            <i class="fa fa-edit"></i>
-                        </a>
-                    </td>
+                    <td> { product.brand } </td>
                 </tr>        
             </tbody>
         </table>
@@ -92,20 +83,11 @@ Lista de productos
                             <div class="col-md-12">
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <label for="" class="form-label"> Categoría </label>
-                                        <select name="category" id="slc_category" class="form-select">
+                                        <label for="" class="form-label"> Marca </label>
+                                        <select name="brand" id="slc_brand" class="form-select">
                                             <option value="" selected> Selecciona una opcíon </option>
-                                            {% for category in categories %}
-                                            <option value="{{ category.id }}"> {{ category.name }} </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label for="" class="form-label"> Tipo </label>
-                                        <select name="type" id="slc_type" class="form-select">
-                                            <option value="" selected> Selecciona una opcíon </option>
-                                            {% for type in types %}
-                                            <option value="{{ type.id }}"> {{ type.name }} </option>
+                                            {% for brand in brands %}
+                                            <option value="{{ brand.id }}"> {{ brand.name }} </option>
                                             {% endfor %}
                                         </select>
                                     </div>

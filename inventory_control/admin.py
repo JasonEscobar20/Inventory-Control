@@ -3,35 +3,25 @@ from django.contrib import admin
 from inventory_control.models import (
     Inventory,
     Warehouse,
-    MeasurementUnit,
-    Side,
     StorageType,
     ProductStatus,
     InventoryCount
 )
+from geo.models import Country
 
 from import_export.admin import ImportExportModelAdmin
 
 # Register your models here.
 @admin.register(Warehouse)
 class WarehouseAdmin(ImportExportModelAdmin):
-    list_display = ['name']
+    list_display = ['name', 'country']
+    list_filter = ['country']
 
 
 @admin.register(Inventory)
 class InventoryAdmin(ImportExportModelAdmin):
-    list_display = ['warehouse', 'employee', 'store', 'status']
-    list_filter = ['warehouse', 'employee', 'store', 'status']
-
-
-@admin.register(MeasurementUnit)
-class MeasurementUnitAdmin(ImportExportModelAdmin):
-    list_display = ['name']
-
-
-@admin.register(Side)
-class SideAdmin(ImportExportModelAdmin):
-    list_display = ['name']
+    list_display = ['warehouse', 'employee', 'store', 'status', 'country']
+    list_filter = ['warehouse', 'employee', 'store', 'status', 'country']
 
 
 @admin.register(StorageType)
@@ -46,5 +36,5 @@ class ProductStatusAdmin(ImportExportModelAdmin):
 
 @admin.register(InventoryCount)
 class InventoryCountAdmin(ImportExportModelAdmin):
-    list_display = ['product', 'amount', 'created', 'creator', 'entry_date', 'product_status']
-    list_filter = ['product_status', 'measurement_unit']
+    list_display = ['product', 'amount', 'created', 'creator', 'product_status', 'country']
+    list_filter = ['product_status', 'country']

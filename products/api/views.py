@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 
 from products.models import Product
+from geo.models import UserProfile
 from products.api.serializers import ProductReadSerializer, ProductSerializer
 
 
@@ -17,14 +18,25 @@ class StandartResultPagination(PageNumberPagination):
 
 
 class ProductList(ListAPIView):
-    queryset = Product.objects.all().order_by('category')
     serializer_class = ProductReadSerializer
     pagination_class = StandartResultPagination
+
+    def get_queryset(self):
+        profile = getattr(self.request.user, 'profile', None)
+        qs = Product.objects.order_by('id')
+        if profile and profile.country:
+            qs = qs.filter(country=profile.country)
+        return qs
 
 
 class ProductCreate(CreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def perform_create(self, serializer):
+        profile = getattr(self.request.user, 'profile', None)
+        country = getattr(profile, 'country', None)
+        serializer.save(country=country)
 
 
 class ProductFilter(APIView):
@@ -36,7 +48,11 @@ class ProductFilter(APIView):
             if value != '' and key != 'csrfmiddlewaretoken':
                 filter_data[key] = value
 
-        products_filtered = Product.objects.filter(**filter_data)
+        profile = getattr(self.request.user, 'profile', None)
+        qs = Product.objects.filter(**filter_data)
+        if profile and profile.country:
+            qs = qs.filter(country=profile.country)
+        products_filtered = qs
 
         # paginator = StandartResultPagination()
         # result_page = paginator.paginate_queryset(products_filtered.order_by('id'), self.request)

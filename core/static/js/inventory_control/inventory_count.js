@@ -8,19 +8,17 @@ Vue.createApp({
 
             inventoryCountSelected: {
                 product: '',
-                measurement_unit: '',
                 product_status: '',
                 amount: '',
-                expiration_date: '',
-                entry_date: '',
                 storage_type: '',
                 position: '',
-                side: '',
+                position_letter: '',
             },
             isDetail: false,
             inventoryCountId: 0,
             inventoryId: 0,
-            filtersActive: false
+            filtersActive: false,
+            showImageField: false,
         }
     },
     mounted() {
@@ -42,28 +40,6 @@ Vue.createApp({
                 dropdownParent: $('#create_inventory_count_modal')
             }); 
         }, 500);
-
-        flatpickr(document.getElementById('txt_expiration_date'), {
-            dateFormat: 'd-m-Y',
-        });
-        flatpickr(document.getElementById('txt_entry_date'), {
-            dateFormat: 'd-m-Y',
-            defaultDate: 'today'
-        });
-
-        flatpickr(document.getElementById('txt_expiration_date_2'), {
-            dateFormat: 'd-m-Y',
-        });
-        flatpickr(document.getElementById('txt_entry_date_2'), {
-            dateFormat: 'd-m-Y',
-        });
-
-        flatpickr(document.getElementById('txt_filter_entry_date'), {
-            dateFormat: 'd-m-Y',
-        });
-        flatpickr(document.getElementById('txt_filter_end_date'), {
-            dateFormat: 'd-m-Y',
-        });
         
     },
     methods: {
@@ -76,6 +52,7 @@ Vue.createApp({
 
             axios.get(`/inventory-control/api/counts/list/${inventoryId}/`)
             .then(response => {
+                console.log({response});
                 this.inventoryCounts = response.data.results;
             })
         },
@@ -87,28 +64,16 @@ Vue.createApp({
         },
         inventoryCountSetData(inventoryCountId){
             let inventoryCountInstance = this.inventoryCounts.filter(item => item.id == inventoryCountId)[0];
-            const entryDateFp = document.querySelector("#txt_entry_date_2")._flatpickr;
-            const expirationDateFp = document.querySelector("#txt_expiration_date_2")._flatpickr;
-
             this.inventoryCountSelected = inventoryCountInstance;
             this.inventoryCountId = inventoryCountInstance.id;
-            entryDateFp.setDate(inventoryCountInstance.entry_date, true, 'Y-m-d');
-            expirationDateFp.setDate(inventoryCountInstance.expiration_date, true, 'Y-m-d');
 
             $('#slc_product1').val(inventoryCountInstance.product.id).trigger('change');
         },
         editInventoryCount(){
             let formInventoryCount = document.getElementById('form_inventory_count');
             let inventoryCountFormData = new FormData(formInventoryCount);
-            let expirationDate = inventoryCountFormData.get('expiration_date');
-            let entryDate = inventoryCountFormData.get('entry_date');
-            let formatExpirationDate = moment(expirationDate, 'DD-MM-Y').format('Y-MM-DD');
-            let formatEntryDate = moment(entryDate, 'DD-MM-Y').format('Y-MM-DD');
             let inventoryCountId = this.inventoryCountId;
             let token = document.querySelector('input[name=csrfmiddlewaretoken]').value;
-
-            inventoryCountFormData.set('entry_date', formatEntryDate);
-            inventoryCountFormData.set('expiration_date', formatExpirationDate);
 
             axios.patch(`/inventory-control/api/count/update/${inventoryCountId}/`, inventoryCountFormData, {
                 headers: {
@@ -137,26 +102,30 @@ Vue.createApp({
         },
         closeInventoryCountModal(){
             this.isDetail = false;
-            const entryDateFp = document.querySelector("#txt_entry_date")._flatpickr;
-            const expirationDateFp = document.querySelector("#txt_expiration_date")._flatpickr;
-
-            entryDateFp.clear();
-            expirationDateFp.clear();
 
             this.inventoryCountSelected = {
                 product: '',
-                measurement_unit: '',
                 product_status: '',
                 amount: '',
-                expiration_date: '',
-                entry_date: '',
                 storage_type: '',
                 position: '',
-                side: '',
+                position_letter: '',
             }
         },
         addInventoryCounter(){
             addInventoryCount(this.inventoryId, 'refresh')
+        },
+
+        productStatusChange(event){
+            let selectedValue = event.target.value;
+            console.log(selectedValue == 3);
+
+            if (selectedValue == 3 ){
+                this.showImageField = true;
+            }
+            else {
+                this.showImageField = false;
+            }
         },
 
         filterInventoryCounts(){
@@ -170,12 +139,8 @@ Vue.createApp({
                 let value = item[1];
 
                 if (value != ''){
-                    if (key == 'entry_date'){
-                        let entryDate = value;
-                        let formatEntryDate = moment(entryDate, 'DD-MM-Y').format('Y-MM-DD');
-                        filters['entry_date'] = formatEntryDate;
-                    }
-                    else if (key == 'end_date' != ''){
+
+                    if (key == 'end_date' != ''){
                         let endDate = value;
                         let formatEndDate = moment(endDate, 'DD-MM-Y').format('Y-MM-DD');
                         formData.set('end_date', formatEndDate);
@@ -253,6 +218,34 @@ Vue.createApp({
                     alert('No existen registros para realizar el reporte');
                 }
             });
+        },
+        finalizeInventory(){
+            if(!confirm('¿Marcar inventario como Finalizado?')) return;
+            const token = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            axios.post(`/inventory-control/api/status/update/${this.inventoryId}/`, {status:2}, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': token,
+                }
+            }).then(resp => {
+                swal({title:'Inventario finalizado', icon:'success', button:'Cerrar'}).then(()=>{ location.reload(); });
+            }).catch(err => {
+                alert(err.response?.data?.detail || 'Error al finalizar');
+            })
+        }
+        ,confirmInventory(){
+            if(!confirm('¿Confirmar inventario? Esta acción es definitiva.')) return;
+            const token = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            axios.post(`/inventory-control/api/status/update/${this.inventoryId}/`, {status:3}, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': token,
+                }
+            }).then(resp => {
+                swal({title:'Inventario confirmado', icon:'success', button:'Cerrar'}).then(()=>{ location.reload(); });
+            }).catch(err => {
+                alert(err.response?.data?.detail || 'Error al confirmar');
+            })
         }
 
         
