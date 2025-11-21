@@ -37,7 +37,7 @@ DEBUG = True
 
 # ALLOWED_HOSTS = ['inventory-control-ngrt.onrender.com', 'localhost', '127.0.0.1']
 ALLOWED_HOSTS = ["*"]  
-CSRF_TRUSTED_ORIGINS = ["https://*.fly.dev"] 
+# CSRF_TRUSTED_ORIGINS = ["https://*.fly.dev"] 
 
 
 # Application definition
