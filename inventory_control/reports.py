@@ -56,7 +56,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
 
             ws.cell(row=initial_row, column=1).value = item.inventory.store.username
             ws.cell(row=initial_row, column=2).value = item.inventory.employee.first_name
-            ws.cell(row=initial_row, column=3).value = item.entry_date
+            # ws.cell(row=initial_row, column=3).value = item.entry_date
             ws.cell(row=initial_row, column=4).value = item.inventory.warehouse.name
             ws.cell(row=initial_row, column=5).value = item.storage_type.name
             # ws.cell(row=initial_row, column=6).value = item.storage_position
@@ -64,8 +64,8 @@ class InventoryCountReport(LoginRequiredMixin, View):
             ws.cell(row=initial_row, column=8).value = item.position
             ws.cell(row=initial_row, column=10).value = item.product.description
             ws.cell(row=initial_row, column=11).value = item.product.sku
-            ws.cell(row=initial_row, column=12).value = item.product.category.name
-            ws.cell(row=initial_row, column=13).value = item.product.type.name
+            # ws.cell(row=initial_row, column=12).value = item.product.category.name
+            # ws.cell(row=initial_row, column=13).value = item.product.type.name
 
             ws.cell(row=initial_row, column=14).value = item.amount
 

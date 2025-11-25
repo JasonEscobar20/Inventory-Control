@@ -41,6 +41,9 @@ Vue.createApp({
             }); 
         }, 500);
         
+        setTimeout(() => {
+            document.getElementById('btn-open-count-modal').click();
+        }, 500);
     },
     methods: {
         getInventoryCounts(){

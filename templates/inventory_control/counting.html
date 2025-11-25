@@ -14,7 +14,7 @@ Conteo de inventario
 {% endblock additional_links %}
 
 {% block main_content %}
-<div id="app_inventory_count" style="padding: 0px 75px;">
+<div id="app_inventory_count" style="padding: 0px 25px;">
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
         <h2 class="display-4 fw-normal mb-2"> CONTEOS </h2>
     </div>
@@ -22,27 +22,27 @@ Conteo de inventario
     <!-- PAGE-HEADER -->
     <div class="page-header">
         <div class="pageheader-btn">
-            <a class="btn btn-primary btn-icon text-white me-2" data-bs-effect="effect-scale" data-bs-toggle="modal" href="#create_inventory_count_modal">
+            <a class="btn btn-primary btn-icon text-white me-2 mt-2" id="btn-open-count-modal" data-bs-effect="effect-scale" data-bs-toggle="modal" href="#create_inventory_count_modal">
                 <span>
                     <i class="fe fe-plus"></i>
                 </span> Agregar conteo
             </a>
             
             {% if inventory.status == 1 %}
-            <button class="btn btn-outline-primary btn-icon me-2" @click.prevent="finalizeInventory">
+            <button class="btn btn-outline-primary btn-icon me-2 mt-2" @click.prevent="finalizeInventory">
                 <span><i class="fa fa-flag-checkered"></i></span> Finalizar
             </button>
             {% elif inventory.status == 2 %}
-            <button class="btn btn-outline-success btn-icon me-2" @click.prevent="confirmInventory">
+            <button class="btn btn-outline-success btn-icon me-2 mt-2" @click.prevent="confirmInventory">
                 <span><i class="fa fa-check"></i></span> Confirmar
             </button>
             {% endif %}
-            <a data-bs-effect="effect-scale" data-bs-toggle="modal" href="#filter-inventory-count" class="btn btn-warning btn-icon text-white me-2">
+            <a data-bs-effect="effect-scale" data-bs-toggle="modal" href="#filter-inventory-count" class="btn btn-warning btn-icon text-white me-2 mt-2">
                 <span>
                     <i class="fa fa-filter"></i>
                 </span> Filtros
             </a>
-            <button @click.prevent="generateReport" class="btn btn-info btn-icon text-white me-2">
+            <button @click.prevent="generateReport" class="btn btn-info btn-icon text-white me-2 mt-2">
                 <span>
                     <i class="fa fa-file-excel-o"></i>
                 </span> Exportar
@@ -57,7 +57,7 @@ Conteo de inventario
             
         </div>
         <div>
-            <span class="badge bg-secondary me-2">Estado: {{ inventory.get_status_display }}</span>
+            <span class="badge bg-secondary me-2 mt-3">Estado: {{ inventory.get_status_display }}</span>
         </div>
     </div>
     <!-- PAGE-HEADER END -->

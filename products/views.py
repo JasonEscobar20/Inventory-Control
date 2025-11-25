@@ -96,6 +96,7 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
         created_count = 0
         updated_count = 0
         errors = []
+        new_products = []
 
         for i, row in enumerate(dataset, start=2):  # start=2 to account for header row as 1
             try:
@@ -148,16 +149,27 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
                         # No change but counts not incremented
                         pass
                 else:
-                    Product.objects.create(
+                    # Product.objects.create(
+                    #     sku=sku,
+                    #     description=description,
+                    #     brand=brand,
+                    #     country=country,
+                    # )
+                    new_products.append(Product(
                         sku=sku,
                         description=description,
                         brand=brand,
-                        country=country,
-                    )
-                    created_count += 1
+                        country=country
+                    ))
+                    # created_count += 1
+                    
+        
 
             except Exception as ex:
                 errors.append(f'Fila {i}: Error inesperado - {ex}')
+                
+        Product.objects.bulk_create(new_products, batch_size=500)
+        created_count = len(new_products)
 
         context = {
             'created_count': created_count,
