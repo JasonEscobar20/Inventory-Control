@@ -8,6 +8,7 @@ app_name = 'inventory_control'
 
 urlpatterns = [
     path('login/', views.SignInView.as_view(), name='login-view'),
+    path('logout/', views.SignOutView.as_view(), name='logout'),
     path('', views.IndexView.as_view(), name='inventory-index-view'),
 
     path('list/', views.InventoryControlListView.as_view(), name='inventory-control-list'),

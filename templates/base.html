@@ -196,7 +196,9 @@
 								<a class="dropdown-item d-flex border-bottom" href="login.html">
 									<div class="d-flex"><i class="fe fe-power me-3 tx-20 text-muted"></i>
 										<div class="pt-1">
-											<h6 class="mb-0"> Cerrar sesión </h6>
+											<form action="{% url 'inventory_control:logout' %}" method="post">{% csrf_token %}
+												<button type="submit" class="btn btn-link text-dark p-0 m-0 align-baseline"> Cerrar sesión </button>
+											</form>
 											<p class="tx-12 mb-0 text-muted"> Finalizar sesión en este perfil </p>
 										</div>
 									</div>
