@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 from employees.models import Employee, Department
-from geo.models import UserProfile
+from geo.models import UserProfile, Country
 
 
 class EmployeeCreateView(LoginRequiredMixin, CreateView):
@@ -29,6 +29,7 @@ class EmployeeCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['departments'] = Department.objects.all()
+        context['countries'] = Country.objects.all()
         return context
     
 class EmployeeListView(LoginRequiredMixin, ListView):
@@ -43,8 +44,6 @@ class EmployeeListView(LoginRequiredMixin, ListView):
             qs = qs.filter(country=profile.country)
         return qs
     
-    
-
 
 class EmployeeUpdateView(LoginRequiredMixin, UpdateView):
     model = Employee
@@ -61,6 +60,7 @@ class EmployeeUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['departments'] = Department.objects.all()
+        context['countries'] = Country.objects.all()
         return context
 
 

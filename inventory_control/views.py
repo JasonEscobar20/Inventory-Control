@@ -42,6 +42,14 @@ class InventoryControlListView(LoginRequiredMixin, TemplateView):
         kwargs['products'] = product_qs
         kwargs['product_status'] = ps_qs
         kwargs['storage_types'] = st_qs
+        # Add warehouses and employees for filters
+        warehouses = Warehouse.objects.all().order_by('name')
+        employees = Employee.objects.filter(active=True).order_by('first_name')
+        if country:
+            warehouses = warehouses.filter(country=country)
+            employees = employees.filter(country=country)
+        kwargs['warehouses'] = warehouses
+        kwargs['employees'] = employees
 
         return super().get_context_data(**kwargs)
 

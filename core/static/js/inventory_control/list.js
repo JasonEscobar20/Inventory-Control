@@ -12,7 +12,9 @@ Vue.createApp({
                 use_pagination: false,
             },
             inventoryId: 0,
-            inventories: []
+            inventories: [],
+            filtersActive: false,
+            filters: {}
         }
     },
     mounted() {
@@ -75,8 +77,9 @@ Vue.createApp({
             
             document.querySelector('.pagination li.active').classList.remove('active')
             
-
-            axios.get(`/inventory-control/api/list/?page=${number}`)
+            let params = new URLSearchParams();
+            params.set('page', number);
+            axios.get(`/inventory-control/api/list/?${params.toString()}`)
             .then(response => {
                 document.getElementById(`li_${number}`).classList.add('active');    
                 this.pagination.previous = response.data.previous;
@@ -107,7 +110,14 @@ Vue.createApp({
             console.log('agregado correctamente');
         },
         getInventoryList(){
-            axios.get('/inventory-control/api/list/')
+            let params = new URLSearchParams();
+            if (this.filtersActive){
+                if (this.filters.warehouse) params.set('warehouse', this.filters.warehouse);
+                if (this.filters.employee) params.set('employee', this.filters.employee);
+                if (this.filters.date) params.set('date', this.filters.date);
+            }
+            const url = params.toString() ? `/inventory-control/api/list/?${params.toString()}` : '/inventory-control/api/list/';
+            axios.get(url)
             .then(response => {
                 
                 this.inventories = response.data.results;
@@ -126,6 +136,21 @@ Vue.createApp({
         addInventoryCounter(){
             
             addInventoryCount(this.inventoryId);
+        },
+        filterInventories(){
+            const form = document.getElementById('form_filter_inventories');
+            const formData = new FormData(form);
+            this.filters = {
+                warehouse: formData.get('warehouse') || '',
+                employee: formData.get('employee') || '',
+                date: formData.get('date') || '',
+            };
+            // Remove empties
+            Object.keys(this.filters).forEach(k => { if (!this.filters[k]) delete this.filters[k]; });
+            this.filtersActive = Object.keys(this.filters).length > 0;
+            document.getElementById('btn_close_inventory_filters').click();
+            this.pagination.activePage = 1;
+            this.getInventoryList();
         }
     },
 }).mount('#app_product_list')

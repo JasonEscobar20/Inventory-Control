@@ -11,13 +11,22 @@ Lista de productos
 {% block main_content %}
 <div class="mb-5" id="app_product_list" style="padding: 0px 25px;">
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
-        <h2 class="display-4 fw-normal mb-2"> LISTA </h2>
+        <h2 class="display-5 fw-normal mb-2"> LISTA </h2>
     </div>
     <div class="mt-2 pb-md-4 mx-auto">
         <div class="btn-list">
             <a href="/products/create/" class="btn btn-pill btn-primary-light"> Agregar producto </a>
             <a href="#"  data-bs-target="#modaldemo1" data-bs-toggle="modal" class="btn btn-pill btn-info-light"> Filtrar </a>
             <a href="/products/bulk-upload/" class="btn btn-pill btn-success-light"> Carga masiva </a>
+            <div class="btn-group">
+                <button type="button" class="btn btn-pill btn-secondary-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Exportar
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" :href="exportHref('xlsx')">Excel (.xlsx)</a></li>
+                    <li><a class="dropdown-item" :href="exportHref('csv')">CSV (.csv)</a></li>
+                </ul>
+            </div>
         </div>
     </div>    
 

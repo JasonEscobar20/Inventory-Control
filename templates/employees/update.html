@@ -12,7 +12,7 @@ Editar colaborador
 {% block main_content %}
 <div style="padding: 0px 75px;">
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
-        <h2 class="display-4 fw-normal"> EDICION </h2>
+        <h2 class="display-5 fw-normal"> EDICION </h2>
     </div>
 
     <div class="row d-flex justify-content-center">
@@ -40,6 +40,10 @@ Editar colaborador
                             <option value="{{ department.id }}" {% if form.department.value|stringformat:"s" == department.id|stringformat:"s" %}selected{% endif %}> {{ department.name }} </option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="chk_active" class="form-label"> Activo </label>
+                        <input type="checkbox" id="chk_active" name="active" {% if form.active.value %} checked {% endif %}>
                     </div>
                 </div>
                 <div class="btn-list text-end mb-4">

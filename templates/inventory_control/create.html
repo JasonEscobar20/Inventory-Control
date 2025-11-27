@@ -16,7 +16,7 @@ Iniciar inventario
 {% block main_content %}
 <div id="app_product_create" style="padding: 0px 75px;"> 
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
-        <h2 class="display-4 fw-normal"> INICIAR </h2>
+        <h2 class="display-5 fw-normal"> INICIAR </h2>
     </div>
 
     <div class="row d-flex justify-content-center">
@@ -33,9 +33,9 @@ Iniciar inventario
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label for="slc_employee" class="form-label"> Empleado </label>
+                        <label for="slc_employee" class="form-label"> Colaborador </label>
                         <select class="form-select" id="slc_employee" name="employee" required>
-                            <option selected> Selecciona un empleado </option>
+                            <option selected> Selecciona un colaborador </option>
                             {% for employee in employees %}
                             <option value="{{ employee.id }}"> {{ employee.first_name }} {{ employee.last_name }} </option>
                             {% endfor %}

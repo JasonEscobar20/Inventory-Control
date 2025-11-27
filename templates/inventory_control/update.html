@@ -15,7 +15,7 @@ Editar inventario
 {% block main_content %}
 <div class="mb-5" id="app_update_product" style="padding: 0px 75px;">
     <div class="p-3 mt-4 pb-md-4 mx-auto text-center">
-        <h2 class="display-4 fw-normal mb-2"> EDICION </h2>
+        <h2 class="display-5 fw-normal mb-2"> EDICION </h2>
     </div>
     
 
@@ -23,8 +23,7 @@ Editar inventario
         <div class="col-md-7">
             <form method="post" id="form_inventory_control">
                 {% csrf_token %}
-                <input type="hidden" id="txt_store" value="{{ form.store.value }}">
-                <input type="hidden" id="txt_employee" value="{{ form.employee.value }}">
+
                 <div class="row">
                     <div class="mb-4">
                         <label for="slc_warehouse" class="form-label"> Bodega </label>
@@ -36,9 +35,9 @@ Editar inventario
                     </div>
                     <div class="mb-4">
                         <div class="mb-4">
-                            <label for="slc_employee" class="form-label"> Empleado </label>
+                            <label for="slc_employee" class="form-label"> Colaborador</label>
                             <select class="form-select" id="slc_employee" name="employee" required>
-                                <option selected> Selecciona un empleado </option>
+                                <option selected> Selecciona un colaborador </option>
                                 {% for employee in employees %}
                                 <option value="{{ employee.id }}"> {{ employee.first_name }} {{ employee.last_name }} </option>
                                 {% endfor %}

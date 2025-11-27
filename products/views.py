@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, UpdateView, View
+from django.http import HttpResponse
+from datetime import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.utils.datastructures import MultiValueDictKeyError
@@ -181,3 +183,45 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
         else:
             messages.success(request, 'Carga procesada correctamente.')
         return render(request, self.template_name, context)
+
+
+class ProductExportView(LoginRequiredMixin, View):
+    """
+    Exporta el listado de productos del país del usuario.
+    Soporta formatos: xlsx (por defecto) y csv via ?format=
+    Filtros opcionales por query: brand (id)
+    Columnas: SKU, Descripción, Marca
+    """
+    def get(self, request):
+        export_format = request.GET.get('format', 'xlsx').lower()
+        if export_format not in ('xlsx', 'csv'):
+            export_format = 'xlsx'
+
+        profile = getattr(request.user, 'profile', None)
+        country = getattr(profile, 'country', None)
+
+        qs = Product.objects.select_related('brand').all()
+        if country:
+            qs = qs.filter(country=country)
+
+        brand_id = request.GET.get('brand')
+        if brand_id:
+            qs = qs.filter(brand_id=brand_id)
+
+        dataset = tablib.Dataset(headers=['SKU', 'Descripción', 'Marca', 'País'])
+        for p in qs.order_by('id'):
+            dataset.append([p.sku, p.description or '', p.brand.name if p.brand_id else '', p.country.code if p.country else ''])
+
+        today = datetime.now().strftime('%Y%m%d')
+        filename = f'productos_{today}.{"csv" if export_format == "csv" else "xlsx"}'
+
+        if export_format == 'csv':
+            content = dataset.export('csv')
+            content_type = 'text/csv; charset=utf-8'
+        else:
+            content = dataset.export('xlsx')
+            content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+        response = HttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response

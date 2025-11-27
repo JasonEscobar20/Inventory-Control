@@ -51,7 +51,7 @@ Lista de inventarios
     <div class="mt-2 pb-md-4 mx-auto">
         <div class="btn-list">
             <a href="/inventory-control/create/" class="btn btn-pill btn-primary-light"> Agregar </a>
-            <a href="#" class="btn btn-pill btn-info-light"> Filtrar </a>
+            <a href="#" data-bs-target="#inventory-filters" data-bs-toggle="modal" class="btn btn-pill btn-info-light"> Filtrar </a>
         </div>
     </div>    
 
@@ -67,8 +67,8 @@ Lista de inventarios
                                 <tr class="border-top">
                                     <th> ID </th>
                                     <th> Bodega </th>
-                                    <th> Empleado </th>
-                                    
+                                    <th> Colaborador</th>
+                                    <th> Fecha </th>
                                     <th class="w-10"> Estado </th>
                                     <th class="w-15"> Acciones </th>
                                 </tr>
@@ -78,7 +78,7 @@ Lista de inventarios
                                     <td> { inventory.id } </td>
                                     <td> { inventory.warehouse } </td>
                                     <td> { inventory.employee } </td>
-                                    
+                                    <td> { inventory.inventory_date } </td>
                                     <td> { inventory.status == 1 ? "Iniciado"  : inventory.status == 2 ? "Finalizado" : "Finalizado" } </td>
                                     <td>
                                         
@@ -114,8 +114,6 @@ Lista de inventarios
                                 </a>
                             </li>
                             <li class="page-item active-item" v-for="page in pagination.pages" :id="`li_${page}`" :class="{'active': (page == 1)}" :key="page" @click.prevent="selectPage(page)">
-                                <a class="page-link" href="#"> { page } </a>
-                            </li>
                             
                             <li class="page-item" v-show="pagination.next != null"  @click="previousNextPage(pagination.next, 1)">
                                 <a class="page-link" href="#" aria-label="Next">
@@ -133,6 +131,55 @@ Lista de inventarios
             </div>
         </div>
     </div>
+
+    <!-- Filters Modal -->
+<div class="modal fade" id="inventory-filters">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content modal-content-demo">
+            <div class="modal-header">
+                <h6 class="modal-title"> Filtros </h6>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" ><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form id="form_filter_inventories" @submit.prevent="filterInventories">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"> Bodega </label>
+                                    <select name="warehouse" id="slc_filter_warehouse" class="form-select">
+                                        <option value="" selected> Selecciona una opción </option>
+                                        {% for w in warehouses %}
+                                        <option value="{{ w.id }}"> {{ w.name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label"> Colaborador </label>
+                                    <select name="employee" id="slc_filter_employee" class="form-select">
+                                        <option value="" selected> Selecciona una opción </option>
+                                        {% for e in employees %}
+                                        <option value="{{ e.id }}"> {{ e.first_name }} {{ e.last_name }} </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label"> Fecha </label>
+                                    <input type="date" name="date" id="txt_filter_date" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" > Filtrar </button> 
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" id="btn_close_inventory_filters"> Cerrar </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
     
     <!-- Inventory count create modal -->

@@ -28,6 +28,16 @@ class InventoryList(ListAPIView):
         qs = Inventory.objects.all().order_by('-id')
         if profile and profile.country:
             qs = qs.filter(country=profile.country)
+        # Filters
+        warehouse_id = self.request.query_params.get('warehouse')
+        employee_id = self.request.query_params.get('employee')
+        date = self.request.query_params.get('date')
+        if warehouse_id:
+            qs = qs.filter(warehouse_id=warehouse_id)
+        if employee_id:
+            qs = qs.filter(employee_id=employee_id)
+        if date:
+            qs = qs.filter(inventory_date=date)
         return qs
 
 

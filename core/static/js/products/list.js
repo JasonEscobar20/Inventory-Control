@@ -13,6 +13,7 @@ Vue.createApp({
 
             products: [],
             filterActive: false,
+            filters: {}
         }
     },
     mounted() {
@@ -81,7 +82,9 @@ Vue.createApp({
         filterProducts(){
             let $form = document.getElementById('form_filter_products');
             let formData = new FormData($form);
-
+            this.filters = {
+                brand: formData.get('brand') || ''
+            };
             axios.post('/products/api/filter/', formData)
             .then(response => {
                 this.filterActive = true;
@@ -91,6 +94,12 @@ Vue.createApp({
             .catch(error => {
                 console.log({error});
             })
+        },
+        exportHref(format){
+            const params = new URLSearchParams();
+            params.set('format', format || 'xlsx');
+            if (this.filters.brand) params.set('brand', this.filters.brand);
+            return `/products/export/?${params.toString()}`;
         }
     },
 
