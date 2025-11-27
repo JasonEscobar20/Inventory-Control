@@ -29,6 +29,7 @@ Lista de colaboradores
                 <th> # </th>
                 <th> Código </th>
                 <th> Nombre </th>
+                <th> Departamento </th>
                 <th>  </th>
             </thead>
             <tbody>
@@ -37,6 +38,7 @@ Lista de colaboradores
                     <td> {{ forloop.counter }} </td>
                     <td> {{ employee.code }} </td>
                     <td> {{ employee.first_name }} {{ employee.last_name }} </td>
+                    <td> {{ employee.department.name }} </td>
                     <td>
                         <a href="/employees/update/{{ employee.id }}/" class="text-dark">
                             <i class="fa fa-edit"></i>

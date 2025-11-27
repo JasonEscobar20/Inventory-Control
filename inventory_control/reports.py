@@ -48,15 +48,13 @@ class InventoryCountReport(LoginRequiredMixin, View):
             top=Side(style='thin', color=BLACK),
             bottom=Side(style='thin',  color=BLACK)
         )
+        
+        ws['B4'] = inventory_instance.inventory_date
 
         for item in inventory_counts:
-
-            
-            
-
             ws.cell(row=initial_row, column=1).value = item.inventory.store.username
             ws.cell(row=initial_row, column=2).value = item.inventory.employee.first_name
-            ws.cell(row=initial_row, column=3).value = item.inventory_date
+            ws.cell(row=initial_row, column=3).value = item.created.date()
             ws.cell(row=initial_row, column=4).value = item.inventory.warehouse.name
             ws.cell(row=initial_row, column=5).value = item.storage_type.name
             ws.cell(row=initial_row, column=6).value = item.level
@@ -65,7 +63,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
             ws.cell(row=initial_row, column=9).value = item.product.sku
             ws.cell(row=initial_row, column=14).value = item.amount
             ws.cell(row=initial_row, column=17).value = item.product_status.name
-            ws.cell(row=initial_row, column=18).value = item.image
+            ws.cell(row=initial_row, column=18).value = item.image.url if item.image else ''
 
             for column in range(1, 19):
                 ws.cell(row=initial_row, column=column).border = border

@@ -1,3 +1,5 @@
+import tablib
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, UpdateView, CreateView, ListView
@@ -7,9 +9,8 @@ from django.http import HttpResponse, HttpResponseNotAllowed
 from datetime import datetime
 
 
-from employees.models import Employee
+from employees.models import Employee, Department
 from geo.models import UserProfile
-import tablib
 
 
 class EmployeeCreateView(LoginRequiredMixin, CreateView):
@@ -23,8 +24,13 @@ class EmployeeCreateView(LoginRequiredMixin, CreateView):
         if profile and profile.country:
             form.instance.country = profile.country
         return super().form_valid(form)
-
-
+    
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['departments'] = Department.objects.all()
+        return context
+    
 class EmployeeListView(LoginRequiredMixin, ListView):
     template_name = 'employees/list.html'
     context_object_name = 'employees'
@@ -51,6 +57,11 @@ class EmployeeUpdateView(LoginRequiredMixin, UpdateView):
         if profile and profile.country:
             return Employee.objects.filter(active=True, country=profile.country)
         return Employee.objects.filter(active=True)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['departments'] = Department.objects.all()
+        return context
 
 
 @login_required

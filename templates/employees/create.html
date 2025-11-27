@@ -32,6 +32,15 @@ Agregar colaborador
                         <label for="txt_last_name" class="form-label"> Apellidos </label>
                         <input type="text" class="form-control" id="txt_last_name" name="last_name" placeholder="Ingrese apellido del colaborador" required>
                     </div>
+                    <div class="mb-4">
+                        <label for="txt_department" class="form-label"> Departamento </label>
+                        <select class="form-select" id="txt_department" name="department" required>
+                            <option value="" selected disabled> Seleccione un departamento </option>
+                            {% for department in departments %}
+                            <option value="{{ department.id }}"> {{ department.name }} </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <input type="checkbox" name="active" id="chk_active" checked hidden>
                 </div>
                 <div class="btn-list text-end mb-4">
