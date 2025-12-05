@@ -116,6 +116,7 @@ Vue.createApp({
             }
         },
         addInventoryCounter(){
+            document.getElementById('btn_add_inventory_count').disabled = true;
             addInventoryCount(this.inventoryId, 'refresh')
         },
 
