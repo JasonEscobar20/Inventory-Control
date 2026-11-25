@@ -18,4 +18,5 @@ urlpatterns = [
     path('counting/list/<int:inventory_id>/', views.InventoryCountListView.as_view(), name='inventory_count_list'),
 
     path('generate/inventory_count/report/', reports.InventoryCountReport.as_view()),
+    path('counting/image/<int:pk>/', views.InventoryCountImageView.as_view(), name='inventory-count-image-view'),
 ] + api_urls

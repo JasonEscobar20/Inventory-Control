@@ -43,7 +43,7 @@ class InventoryReadSerializer(InventorySerializer):
 
 
 class InventoryCountSerializer(serializers.ModelSerializer):
-    active = serializers.BooleanField(initial=True)
+    active = serializers.BooleanField(required=False, default=True)
     
     class Meta:
         model = InventoryCount
@@ -88,12 +88,15 @@ class InventoryCountReadSerializer(InventoryCountSerializer):
     image = serializers.SerializerMethodField()
 
     def get_image(self, instance):
-        if instance.image:
-            try:
-                return instance.image.url
-            except Exception:
-                return None
-        return None
-    
-    
+        if not instance.image:
+            return None
+
+        try:
+            path = reverse('inventory_control:inventory-count-image-view', kwargs={'pk': instance.pk})
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(path)
+            return path
+        except Exception:
+            return None
     

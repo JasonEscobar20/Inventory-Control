@@ -99,6 +99,9 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
         updated_count = 0
         errors = []
         new_products = []
+        created_same_country = 0
+        created_other_country = 0
+        skipped_updates_other_country = 0
 
         for i, row in enumerate(dataset, start=2):  # start=2 to account for header row as 1
             try:
@@ -118,10 +121,8 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
                     errors.append(f'Fila {i}: País no encontrado para código "{country_code}"')
                     continue
 
-                # Permission: user may only upload for own country
-                if user_country and country != user_country:
-                    errors.append(f'Fila {i}: País del registro ({country_code}) no coincide con el país del usuario')
-                    continue
+                # Behavior: allow creating products for other countries.
+                # Only perform updates when the row country matches the user's country (unless user has no country).
 
                 # Brand resolve or create
                 brand = None
@@ -137,19 +138,21 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
                 # Upsert product by (sku, country)
                 product = Product.objects.filter(sku=sku, country=country).first()
                 if product:
-                    changed = False
-                    if product.description != description:
-                        product.description = description
-                        changed = True
-                    if brand and product.brand_id != (brand.id if brand else None):
-                        product.brand = brand
-                        changed = True
-                    if changed:
-                        product.save()
-                        updated_count += 1
+                    # Update when user has no country (admin) OR row country equals user's country
+                    if (not user_country) or (country == user_country):
+                        changed = False
+                        if product.description != description:
+                            product.description = description
+                            changed = True
+                        if brand and product.brand_id != (brand.id if brand else None):
+                            product.brand = brand
+                            changed = True
+                        if changed:
+                            product.save()
+                            updated_count += 1
                     else:
-                        # No change but counts not incremented
-                        pass
+                        # Existing product for another country - do not update
+                        skipped_updates_other_country += 1
                 else:
                     # Product.objects.create(
                     #     sku=sku,
@@ -163,7 +166,11 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
                         brand=brand,
                         country=country
                     ))
-                    # created_count += 1
+                    # track created counts by country relation to user
+                    if (not user_country) or (country == user_country):
+                        created_same_country += 1
+                    else:
+                        created_other_country += 1
                     
         
 
@@ -171,7 +178,7 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
                 errors.append(f'Fila {i}: Error inesperado - {ex}')
                 
         Product.objects.bulk_create(new_products, batch_size=500)
-        created_count = len(new_products)
+        created_count = created_same_country + created_other_country
 
         context = {
             'created_count': created_count,
@@ -224,4 +231,4 @@ class ProductExportView(LoginRequiredMixin, View):
 
         response = HttpResponse(content, content_type=content_type)
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        return response1

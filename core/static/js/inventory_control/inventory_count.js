@@ -4,6 +4,13 @@ Vue.createApp({
     delimiters: ['{', '}'],
     data() {
         return {
+            pagination: {
+                pages: 0,
+                previous: null,
+                next: null,
+                activePage: 1,
+                use_pagination: false,
+            },
             inventoryCounts: [],
 
             inventoryCountSelected: {
@@ -18,46 +25,145 @@ Vue.createApp({
             inventoryCountId: 0,
             inventoryId: 0,
             filtersActive: false,
+            filters: {},
             showImageField: false,
+            productSelectInitialized: false,
+            productEditSelectInitialized: false,
         }
     },
     mounted() {
         this.getInventoryCounts();
 
-        setTimeout(() => {
-            // $("#slc_product").select2({
-            //     width: '100%',
-            //     placeholder: "Seleccione un producto",
-            //     dropdownParent: $('#create_inventory_count_modal')
-            // }); 
-            $("#slc_product").selectize({
-                sortField: "text",
-              });
-                
-            $("#slc_product1").select2({
-                width: '100%',
-                placeholder: "Seleccione un producto",
-                dropdownParent: $('#create_inventory_count_modal')
-            }); 
-        }, 500);
+        this.initProductSelect();
+        this.initProductEditSelect();
         
         setTimeout(() => {
             document.getElementById('btn-open-count-modal').click();
         }, 500);
+
+        const createModal = document.getElementById('create_inventory_count_modal');
+        if (createModal) {
+            createModal.addEventListener('shown.bs.modal', () => {
+                this.initProductSelect();
+            });
+        }
+
+        const editModal = document.getElementById('inventoryCount');
+        if (editModal) {
+            editModal.addEventListener('shown.bs.modal', () => {
+                this.initProductEditSelect();
+            });
+        }
     },
     methods: {
+        initAjaxProductSelect(selectId, dropdownParentSelector, initializedFlag){
+            if (this[initializedFlag]) return;
+
+            const productSelect = document.getElementById(selectId);
+            if (!productSelect) return;
+
+            $(productSelect).select2({
+                width: '100%',
+                placeholder: 'Seleccione un producto',
+                dropdownParent: $(dropdownParentSelector),
+                ajax: {
+                    url: '/products/api/list/',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            search: params.term || '',
+                            q: params.term || '',
+                            page: params.page || 1,
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.results.map(item => ({
+                                id: item.id,
+                                text: `${item.sku} ${item.description}`.trim(),
+                            })),
+                            pagination: {
+                                more: data.next !== null,
+                            }
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0,
+            });
+
+            this[initializedFlag] = true;
+        },
+        initProductSelect(){
+            this.initAjaxProductSelect('slc_product', '#create_inventory_count_modal', 'productSelectInitialized');
+        },
+        initProductEditSelect(){
+            this.initAjaxProductSelect('slc_product1', '#inventoryCount', 'productEditSelectInitialized');
+        },
+        buildInventoryCountParams(page = 1){
+            let params = new URLSearchParams();
+            params.set('page', page);
+
+            if (this.filtersActive){
+                if (this.filters.sku) params.set('sku', this.filters.sku);
+                if (this.filters.product_status) params.set('product_status', this.filters.product_status);
+                if (this.filters.storage_type) params.set('storage_type', this.filters.storage_type);
+            }
+
+            return params;
+        },
+        loadInventoryCounts(page = 1){
+            this.pagination.use_pagination = true;
+
+            const params = this.buildInventoryCountParams(page);
+            axios.get(`/inventory-control/api/counts/list/${this.inventoryId}/?${params.toString()}`)
+            .then(response => {
+                this.inventoryCounts = response.data.results;
+                this.pagination.previous = response.data.previous;
+                this.pagination.next = response.data.next;
+                this.pagination.pages = Math.ceil(response.data.count / 20);
+                this.pagination.activePage = page;
+                this.pagination.use_pagination = false;
+            })
+            .catch(error => {
+                console.log({error});
+                this.pagination.use_pagination = false;
+            })
+        },
+        previousNextPage(page, action){
+            this.pagination.use_pagination = true;
+            axios.get(page)
+            .then(response => {
+                if (action == 0){
+                    this.pagination.activePage -= 1;
+                }
+                if (action == 1){
+                    this.pagination.activePage += 1;
+                }
+
+                this.pagination.previous = response.data.previous;
+                this.pagination.next = response.data.next;
+                this.pagination.pages = Math.ceil(response.data.count / 20);
+                this.inventoryCounts = response.data.results;
+                this.pagination.use_pagination = false;
+            })
+            .catch(error => {
+                console.log({error});
+                this.pagination.use_pagination = false;
+            })
+        },
+        selectPage(number){
+            this.loadInventoryCounts(number);
+        },
         getInventoryCounts(){
             let url = window.location.pathname;
             let splitUrl = url.split('/');
             let inventoryId = splitUrl[splitUrl.length - 2];
 
             this.inventoryId = inventoryId;
-
-            axios.get(`/inventory-control/api/counts/list/${inventoryId}/`)
-            .then(response => {
-                console.log({response});
-                this.inventoryCounts = response.data.results;
-            })
+            this.loadInventoryCounts(1);
         },
         inventoryCountDetail(inventoryCountId, action){
             if (action == 'detail'){ this.isDetail = true; };
@@ -70,7 +176,19 @@ Vue.createApp({
             this.inventoryCountSelected = inventoryCountInstance;
             this.inventoryCountId = inventoryCountInstance.id;
 
-            $('#slc_product1').val(inventoryCountInstance.product.id).trigger('change');
+            this.initProductEditSelect();
+
+            const productId = inventoryCountInstance.product.id;
+            const productLabel = `${inventoryCountInstance.product.sku} ${inventoryCountInstance.product.description}`.trim();
+            const productSelect = $('#slc_product1');
+            const currentOption = productSelect.find(`option[value="${productId}"]`);
+
+            if (!currentOption.length) {
+                const option = new Option(productLabel, productId, true, true);
+                productSelect.append(option);
+            }
+
+            productSelect.val(productId).trigger('change');
         },
         editInventoryCount(){
             let formInventoryCount = document.getElementById('form_inventory_count');
@@ -101,6 +219,32 @@ Vue.createApp({
             })
             .catch(error => {
                 console.log({error});
+            })
+        },
+        deleteInventoryCount(inventoryCountId){
+            if(!confirm('¿Eliminar este conteo? Se desactivará sin borrarse definitivamente.')) return;
+
+            let token = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            axios.post(`/inventory-control/api/count/delete/${inventoryCountId}/`, {}, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': token,
+                }
+            })
+            .then(response => {
+                swal({
+                    title: 'Conteo desactivado',
+                    text: 'El registro fue marcado como inactivo.',
+                    icon: 'success',
+                    button: 'Cerrar',
+                    closeOnClickOutside: false,
+                }).then(() => {
+                    this.getInventoryCounts();
+                });
+            })
+            .catch(error => {
+                console.log({error});
+                alert(error.response?.data?.detail || 'No fue posible eliminar el conteo.');
             })
         },
         closeInventoryCountModal(){
@@ -135,7 +279,6 @@ Vue.createApp({
         filterInventoryCounts(){
             let $form = document.getElementById('form_filter_inventory_counts');
             let formData = new FormData($form);
-            let token = document.querySelector('input[name=csrfmiddlewaretoken]').value;
             let filters = {}
 
             for (let item of formData.entries()){
@@ -143,36 +286,19 @@ Vue.createApp({
                 let value = item[1];
 
                 if (value != ''){
-
-                    if (key == 'end_date' != ''){
-                        let endDate = value;
-                        let formatEndDate = moment(endDate, 'DD-MM-Y').format('Y-MM-DD');
-                        formData.set('end_date', formatEndDate);
-                    }
-                    else {
-                        filters[key] = value;
-                    }
+                    filters[key] = value;
                 }
             };
-            
 
-            axios.post('/inventory-control/api/count/filter/', filters, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': token,
-                }
-            })
-            .then(response => {
-                this.filtersActive = true;
-                this.inventoryCounts = response.data;
-                document.getElementById('btn_close_modal_filter').click();
-            })
-            .catch(error => {
-                console.log({error});
-            })
+            this.filters = filters;
+            this.filtersActive = Object.keys(this.filters).length > 0;
+            this.pagination.activePage = 1;
+            document.getElementById('btn_close_modal_filter').click();
+            this.loadInventoryCounts(1);
         },
         cleanFilters(){
             this.filtersActive = false;
+            this.filters = {};
             this.getInventoryCounts();
             let $form = document.getElementById('form_filter_inventory_counts');
             $form.reset();

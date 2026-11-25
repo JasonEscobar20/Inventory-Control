@@ -97,14 +97,45 @@ Conteo de inventario
                                                 @click.prevent="inventoryCountDetail(item.id, 'edit')">
                                             <i class="fa fa-edit" style="font-size: 15px"></i>
                                         </button>
-                                        <a href="#" class="btn btn-danger-light btn-square br-50 m-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Ver conteos">
+                                        <button type="button" class="btn btn-danger-light btn-square br-50 m-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Eliminar conteo" @click.prevent="deleteInventoryCount(item.id)">
                                             <i class="fa fa-trash" style="font-size: 15px"></i>
-                                        </a>
-                                        
+                                        </button>                                        
                                     </td>
                                 </tr>        
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginator -->
+    <div id="row" class="mt-3" v-if="pagination.pages > 1">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <div class="col-md-6">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li v-show="pagination.previous != null" @click="previousNextPage(pagination.previous, 0)" class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item active-item" v-for="page in pagination.pages" :id="`li_${page}`" :class="{'active': (page == pagination.activePage)}" :key="page" @click.prevent="selectPage(page)">
+                                <a class="page-link" href="#">{ page }</a>
+                            </li>
+                            <li class="page-item" v-show="pagination.next != null" @click="previousNextPage(pagination.next, 1)">
+                                <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+                <div class="col-md-6">
+                    <div class="spinner-border text-primary" role="status" v-if="pagination.use_pagination">
+                        <span class="sr-only">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -164,9 +195,7 @@ Conteo de inventario
                                     <div class="col-md-6">
                                         <label class="form-label"> Artículo </label>
                                         <select name="product" id="slc_product1" class="form-select" required  :disabled="isDetail">
-                                            {% for product in products %}
-                                            <option value="{{ product.id }}"> {{ product.description }} </option>
-                                            {% endfor %}
+                                            <option value="" selected></option>
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">

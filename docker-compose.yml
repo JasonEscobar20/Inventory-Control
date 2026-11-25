@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////data/db.sqlite3
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - sqlite_data:/data
+
+volumes:
+  sqlite_data:

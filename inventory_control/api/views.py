@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
+from django.shortcuts import get_object_or_404
 
 from inventory_control.models import Inventory, InventoryCount
 from geo.models import UserProfile
@@ -73,9 +74,23 @@ class InventoryCountList(ListAPIView):
         if profile and profile.country:
             base_qs = base_qs.filter(country=profile.country)
         inventory = base_qs.get(id=inventory_id)
-        inventory_counts = inventory.inventory_records.all().order_by('id')
+        inventory_counts = (
+            inventory.inventory_records
+            .filter(active=True)
+            .select_related('product__brand', 'product_status', 'storage_type', 'creator')
+            .order_by('id')
+        )
 
-        print(inventory_counts.last())
+        sku = self.request.query_params.get('sku')
+        product_status = self.request.query_params.get('product_status')
+        storage_type = self.request.query_params.get('storage_type')
+
+        if sku:
+            inventory_counts = inventory_counts.filter(product__sku=sku)
+        if product_status:
+            inventory_counts = inventory_counts.filter(product_status=product_status)
+        if storage_type:
+            inventory_counts = inventory_counts.filter(storage_type=storage_type)
 
         return inventory_counts
 
@@ -86,8 +101,22 @@ class InventoryCountUpdate(UpdateAPIView):
 
     def get_queryset(self):
         pk = self.kwargs['pk']
-        instance = InventoryCount.objects.filter(id=pk)
+        instance = InventoryCount.objects.filter(id=pk, active=True)
         return instance
+
+
+class InventoryCountSoftDelete(APIView):
+    def post(self, request, *args, **kwargs):
+        inventory_count_id = kwargs.get('pk')
+
+        profile = getattr(request.user, 'profile', None)
+        print(profile, 'profile')
+        qs = InventoryCount.objects.filter(active=True)
+        inventory_count = get_object_or_404(qs, pk=inventory_count_id)
+        inventory_count.active = False
+        inventory_count.save(update_fields=['active'])
+
+        return Response({'detail': 'Conteo desactivado correctamente.'}, status=status.HTTP_200_OK)
 
     
 class InventoryCountFilter(APIView):
@@ -107,7 +136,7 @@ class InventoryCountFilter(APIView):
                     filter_data['storage_type'] = value
 
         profile = getattr(self.request.user, 'profile', None)
-        qs = InventoryCount.objects.filter(**filter_data)
+        qs = InventoryCount.objects.filter(active=True, **filter_data)
         if profile and profile.country:
             qs = qs.filter(country=profile.country)
         inventory_counts_filtered = qs

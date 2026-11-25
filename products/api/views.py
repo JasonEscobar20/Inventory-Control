@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Q
 
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.views import APIView
@@ -23,9 +24,23 @@ class ProductList(ListAPIView):
 
     def get_queryset(self):
         profile = getattr(self.request.user, 'profile', None)
-        qs = Product.objects.order_by('id')
+        qs = Product.objects.filter(active=True).select_related('brand').order_by('id')
         if profile and profile.country:
             qs = qs.filter(country=profile.country)
+
+        search = (
+            self.request.query_params.get('search')
+            or self.request.query_params.get('term')
+            or self.request.query_params.get('q')
+            or ''
+        ).strip()
+        if search:
+            qs = qs.filter(
+                Q(sku__icontains=search) |
+                Q(description__icontains=search) |
+                Q(brand__name__icontains=search)
+            )
+
         return qs
 
 

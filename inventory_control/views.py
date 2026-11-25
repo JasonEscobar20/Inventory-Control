@@ -1,4 +1,8 @@
 from distutils.log import Log
+import mimetypes
+from PIL import Image, UnidentifiedImageError
+from django.http import FileResponse
+from django.core.exceptions import SuspiciousFileOperation
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -6,7 +10,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView, View, UpdateView
 
-from inventory_control.models import Inventory, Warehouse, Employee, ProductStatus, StorageType
+from inventory_control.models import Inventory, Warehouse, Employee, ProductStatus, StorageType, InventoryCount
 from products.models import Product
 from geo.models import UserProfile
 
@@ -118,26 +122,70 @@ class InventoryCountListView(LoginRequiredMixin, TemplateView):
         inventory_id = kwargs['inventory_id']
         
         inventory_instance = Inventory.objects.get(pk=inventory_id)
-        verify_counts = inventory_instance.inventory_records.all()
+        last_count = (
+            inventory_instance.inventory_records
+            .filter(active=True)
+            .order_by('-id')
+            .first()
+        )
 
-        if verify_counts.count() > 0:
-            last_count = verify_counts.last()
-            last_position_data['storage_type'] = last_count.storage_type.id
+        if last_count:
+            last_position_data['storage_type'] = last_count.storage_type_id
             last_position_data['position_letter'] = last_count.position_letter
             last_position_data['level'] = last_count.level
             last_position_data['position'] = last_count.position
-            
-        print(last_position_data, '==========')
 
         kwargs['last_position'] = last_position_data
         kwargs['inventory'] = inventory_instance
-        profile = getattr(self.request.user, 'profile', None)
-        country = getattr(profile, 'country', None)
-        product_qs = Product.objects.filter(active=True)
-        if country:
-            product_qs = product_qs.filter(country=country)
-        kwargs['products'] = product_qs
         kwargs['product_status'] = ProductStatus.objects.all()
         kwargs['storage_types'] = StorageType.objects.all()
 
         return super().get_context_data(**kwargs)
+
+
+class InventoryCountImageView(LoginRequiredMixin, View):
+    template_name = 'inventory_control/image_error.html'
+
+    def get(self, request, *args, **kwargs):
+        inventory_count = InventoryCount.objects.filter(pk=kwargs['pk']).first()
+        if not inventory_count:
+            return render(
+                request,
+                self.template_name,
+                {
+                    'message': 'Imagen no encontrada o enlace invalido.',
+                    'inventory_count': None,
+                },
+                status=404,
+            )
+
+        if not inventory_count.image:
+            return render(
+                request,
+                self.template_name,
+                {
+                    'message': 'Este registro no tiene una imagen asociada.',
+                    'inventory_count': inventory_count,
+                },
+                status=404,
+            )
+
+        try:
+            with inventory_count.image.open('rb') as image_file:
+                image_file.seek(0)
+                with Image.open(image_file) as img:
+                    img.verify()
+
+            inventory_count.image.open('rb')
+            content_type = mimetypes.guess_type(inventory_count.image.name)[0] or 'application/octet-stream'
+            return FileResponse(inventory_count.image.file, content_type=content_type)
+        except (FileNotFoundError, OSError, ValueError, UnidentifiedImageError, SuspiciousFileOperation):
+            return render(
+                request,
+                self.template_name,
+                {
+                    'message': 'Imagen danada o corrupta, no puede abrirse o servidor no puedo mostrarla',
+                    'inventory_count': inventory_count,
+                },
+                status=422,
+            )

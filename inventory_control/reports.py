@@ -4,13 +4,14 @@ import os
 from django.views.generic import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http.response import JsonResponse, HttpResponse
+from django.urls import reverse
 
 from datetime import datetime
 
 from openpyxl import load_workbook
 from openpyxl.styles.colors import BLACK
 from openpyxl.styles import Border, Side
-
+from openpyxl.styles import Font
 from inventory_control.models import InventoryCount, Inventory
 
 
@@ -22,7 +23,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
         inventory_id = params.get('inventory_id', '')
 
         inventory_instance = Inventory.objects.get(id=inventory_id)
-        inventory_counts = inventory_instance.inventory_records.all()
+        inventory_counts = inventory_instance.inventory_records.filter(active=True)
 
         for key, value in params.items():
             if value != '':
@@ -41,6 +42,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
         wb = load_workbook('core/static/assets/report_templates/report.xlsx')
         ws = wb.active
         initial_row = 13
+        link_font = Font(color='0563C1', underline='single')
 
         border =  Border(
             left=Side(style='thin',color=BLACK),
@@ -50,6 +52,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
         )
         
         ws['B4'] = inventory_instance.inventory_date
+        ws['M12'] = "Letra"
 
         for item in inventory_counts:
             ws.cell(row=initial_row, column=1).value = item.inventory.store.username
@@ -63,9 +66,18 @@ class InventoryCountReport(LoginRequiredMixin, View):
             ws.cell(row=initial_row, column=9).value = item.product.sku
             ws.cell(row=initial_row, column=10).value = item.amount
             ws.cell(row=initial_row, column=11).value = item.product_status.name
-            ws.cell(row=initial_row, column=12).value = item.image.url if item.image else ''
+            #ws.cell(row=initial_row, column=12).value = item.image.url if item.image else ''
+            ws.cell(row=initial_row, column=13).value = item.position_letter
+            image_cell = ws.cell(row=initial_row, column=12)
+            if item.image:
+                image_link = request.build_absolute_uri(item.image.url)
+                image_cell.value = 'Ver imagen'
+                image_cell.hyperlink = image_link
+                image_cell.font = link_font
+            else:
+                image_cell.value = ''
 
-            for column in range(1, 13):
+            for column in range(1, 14):
                 ws.cell(row=initial_row, column=column).border = border
 
             initial_row = initial_row + 1
