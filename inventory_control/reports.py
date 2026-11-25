@@ -52,23 +52,36 @@ class InventoryCountReport(LoginRequiredMixin, View):
         )
         
         ws['B4'] = inventory_instance.inventory_date
-        ws['M12'] = "Letra"
+        ws['A12'] = "LETRA"
+        ws['B12'] = "POSICION"
+        ws['C12'] = "NIVEL"
+        ws['D12'] = "ALMACEN"
+        ws['E12'] = "EMPLEADO"
+        ws['F12'] = "FECHA CONTEO"
+        ws['G12'] = "BODEGA"
+        ws['H12'] = "TIPO DE ALMACENAJE"
+        ws['I12'] = "ARTICULO"
+        ws['J12'] = "SKU"
+        ws['K12'] = "CANTIDAD"
+        ws['L12'] = "ESTATUS"
+        ws['M12'] = "IMAGEN"
+        ws['N12'] = "NOTA"
 
         for item in inventory_counts:
-            ws.cell(row=initial_row, column=1).value = item.inventory.store.username
-            ws.cell(row=initial_row, column=2).value = item.inventory.employee.first_name
-            ws.cell(row=initial_row, column=3).value = item.created.date()
-            ws.cell(row=initial_row, column=4).value = item.inventory.warehouse.name
-            ws.cell(row=initial_row, column=5).value = item.storage_type.name
-            ws.cell(row=initial_row, column=6).value = item.level
-            ws.cell(row=initial_row, column=7).value = item.position
-            ws.cell(row=initial_row, column=8).value = item.product.description
-            ws.cell(row=initial_row, column=9).value = item.product.sku
-            ws.cell(row=initial_row, column=10).value = item.amount
-            ws.cell(row=initial_row, column=11).value = item.product_status.name
-            #ws.cell(row=initial_row, column=12).value = item.image.url if item.image else ''
-            ws.cell(row=initial_row, column=13).value = item.position_letter
-            image_cell = ws.cell(row=initial_row, column=12)
+            ws.cell(row=initial_row, column=1).value = item.position_letter
+            ws.cell(row=initial_row, column=2).value = item.position
+            ws.cell(row=initial_row, column=3).value = item.level
+            ws.cell(row=initial_row, column=4).value = item.inventory.store.username
+            ws.cell(row=initial_row, column=5).value = item.inventory.employee.first_name
+            ws.cell(row=initial_row, column=6).value = item.created.date()
+            ws.cell(row=initial_row, column=7).value = item.inventory.warehouse.name
+            ws.cell(row=initial_row, column=8).value = item.storage_type.name
+            ws.cell(row=initial_row, column=9).value = item.product.description
+            ws.cell(row=initial_row, column=10).value = item.product.sku
+            ws.cell(row=initial_row, column=11).value = item.amount
+            ws.cell(row=initial_row, column=12).value = item.product_status.name
+            ws.cell(row=initial_row, column=14).value = item.notes or ''
+            image_cell = ws.cell(row=initial_row, column=13)
             if item.image:
                 image_link = request.build_absolute_uri(item.image.url)
                 image_cell.value = 'Ver imagen'
@@ -77,7 +90,7 @@ class InventoryCountReport(LoginRequiredMixin, View):
             else:
                 image_cell.value = ''
 
-            for column in range(1, 14):
+            for column in range(1, 15):
                 ws.cell(row=initial_row, column=column).border = border
 
             initial_row = initial_row + 1

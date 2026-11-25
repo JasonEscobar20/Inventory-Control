@@ -6,6 +6,10 @@ from datetime import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.utils.datastructures import MultiValueDictKeyError
+from django.db import transaction
+from openpyxl import load_workbook
+import csv
+import io
 
 from products.models import Product, Brand
 from geo.models import UserProfile, Country
@@ -73,112 +77,164 @@ class ProductBulkUploadView(LoginRequiredMixin, View):
             messages.error(request, 'Debe seleccionar un archivo.')
             return render(request, self.template_name)
 
-        # Detect format by extension
         filename = upload_file.name.lower()
         if filename.endswith('.xlsx'):
-            file_format = 'xlsx'
-            data = upload_file.read()
-            dataset = tablib.Dataset().load(data, format=file_format)
+            workbook = load_workbook(upload_file.file, read_only=True, data_only=True)
+            worksheet = workbook.active
+            rows = worksheet.iter_rows(values_only=True)
+            raw_headers = next(rows, None)
+            if raw_headers is None:
+                messages.error(request, 'El archivo está vacío.')
+                workbook.close()
+                return render(request, self.template_name)
         elif filename.endswith('.csv'):
-            file_format = 'csv'
-            data = upload_file.read().decode('utf-8')
-            dataset = tablib.Dataset().load(data, format=file_format)
+            data = upload_file.read().decode('utf-8-sig')
+            csv_rows = csv.reader(io.StringIO(data))
+            raw_headers = next(csv_rows, None)
+            if raw_headers is None:
+                messages.error(request, 'El archivo está vacío.')
+                return render(request, self.template_name)
         else:
             messages.error(request, 'Formato no soportado. Use CSV o Excel (.xlsx).')
             return render(request, self.template_name)
 
         required_headers = ['sku', 'description', 'brand', 'country']
-        # Normalize headers (lowercase)
-        header_map = {h.lower(): idx for idx, h in enumerate(dataset.headers or [])}
+        header_map = {
+            str(header).strip().lower(): idx
+            for idx, header in enumerate(raw_headers)
+            if header is not None
+        }
         missing = [h for h in required_headers if h not in header_map]
         if missing:
+            if filename.endswith('.xlsx'):
+                workbook.close()
             messages.error(request, f'Faltan columnas requeridas: {", ".join(missing)}')
             return render(request, self.template_name)
 
         created_count = 0
         updated_count = 0
         errors = []
-        new_products = []
-        created_same_country = 0
-        created_other_country = 0
-        skipped_updates_other_country = 0
+        countries = {country.code.upper(): country for country in Country.objects.all()}
+        brands = {
+            (brand.country_id, brand.name.casefold()): brand
+            for brand in Brand.objects.select_related('country').all()
+        }
+        records = []
 
-        for i, row in enumerate(dataset, start=2):  # start=2 to account for header row as 1
+        data_rows = rows if filename.endswith('.xlsx') else csv_rows
+        for i, row in enumerate(data_rows, start=2):
             try:
-                sku = str(row[header_map['sku']]).strip()
-                description = str(row[header_map['description']]).strip()
-                brand_name = str(row[header_map['brand']]).strip()
-                country_code = str(row[header_map['country']]).strip().upper()
+                def value(header):
+                    idx = header_map[header]
+                    return '' if idx >= len(row) or row[idx] is None else str(row[idx]).strip()
+
+                sku = value('sku')
+                description = value('description')
+                brand_name = value('brand')
+                country_code = value('country').upper()
 
                 if not sku:
                     errors.append(f'Fila {i}: SKU vacío')
                     continue
 
-                # Country lookup
-                try:
-                    country = Country.objects.get(code__iexact=country_code)
-                except Country.DoesNotExist:
+                country = countries.get(country_code)
+                if country is None:
                     errors.append(f'Fila {i}: País no encontrado para código "{country_code}"')
                     continue
 
-                # Behavior: allow creating products for other countries.
-                # Only perform updates when the row country matches the user's country (unless user has no country).
+                if user_country and country != user_country:
+                    errors.append(
+                        f'Fila {i}: País del registro ({country_code}) no coincide '
+                        f'con el país del usuario ({user_country.code}).'
+                    )
+                    continue
 
-                # Brand resolve or create
-                brand = None
-                if brand_name:
-                    brand = Brand.objects.filter(name__iexact=brand_name, country=country).first()
-                    if not brand:
-                        if create_brands:
-                            brand = Brand.objects.create(name=brand_name, country=country)
-                        else:
-                            errors.append(f'Fila {i}: Marca "{brand_name}" no existe en {country.code}')
-                            continue
-
-                # Upsert product by (sku, country)
-                product = Product.objects.filter(sku=sku, country=country).first()
-                if product:
-                    # Update when user has no country (admin) OR row country equals user's country
-                    if (not user_country) or (country == user_country):
-                        changed = False
-                        if product.description != description:
-                            product.description = description
-                            changed = True
-                        if brand and product.brand_id != (brand.id if brand else None):
-                            product.brand = brand
-                            changed = True
-                        if changed:
-                            product.save()
-                            updated_count += 1
-                    else:
-                        # Existing product for another country - do not update
-                        skipped_updates_other_country += 1
-                else:
-                    # Product.objects.create(
-                    #     sku=sku,
-                    #     description=description,
-                    #     brand=brand,
-                    #     country=country,
-                    # )
-                    new_products.append(Product(
-                        sku=sku,
-                        description=description,
-                        brand=brand,
-                        country=country
-                    ))
-                    # track created counts by country relation to user
-                    if (not user_country) or (country == user_country):
-                        created_same_country += 1
-                    else:
-                        created_other_country += 1
-                    
-        
-
+                records.append((i, sku, description, brand_name, country))
             except Exception as ex:
                 errors.append(f'Fila {i}: Error inesperado - {ex}')
-                
-        Product.objects.bulk_create(new_products, batch_size=500)
-        created_count = created_same_country + created_other_country
+
+        if filename.endswith('.xlsx'):
+            workbook.close()
+
+        if not records:
+            context = {'created_count': 0, 'updated_count': 0, 'errors': errors}
+            if errors:
+                messages.warning(request, f'Procesado con errores: {len(errors)} problema(s).')
+            return render(request, self.template_name, context)
+
+        missing_brand_keys = set()
+        brand_keys_by_record = []
+        for i, sku, description, brand_name, country in records:
+            brand = None
+            if brand_name:
+                key = (country.id, brand_name.casefold())
+                brand = brands.get(key)
+                if brand is None:
+                    if create_brands:
+                        missing_brand_keys.add((country.id, brand_name, country))
+                    else:
+                        errors.append(f'Fila {i}: Marca "{brand_name}" no existe en {country.code}')
+                        continue
+            brand_keys_by_record.append((i, sku, description, brand_name, country, brand))
+
+        with transaction.atomic():
+            if missing_brand_keys:
+                Brand.objects.bulk_create(
+                    [Brand(name=name, country=country) for country_id, name, country in missing_brand_keys],
+                    batch_size=500,
+                )
+                country_ids = {country.id for country in (item[2] for item in missing_brand_keys)}
+                for brand in Brand.objects.filter(country_id__in=country_ids):
+                    brands[(brand.country_id, brand.name.casefold())] = brand
+
+            record_keys = {(sku, country.id) for i, sku, description, brand_name, country, brand in brand_keys_by_record}
+            existing_map = {}
+            for country_id in {country_id for sku, country_id in record_keys}:
+                skus = {sku for sku_key, cid in record_keys if cid == country_id for sku in [sku_key]}
+                for start in range(0, len(skus), 500):
+                    chunk = list(skus)[start:start + 500]
+                    for product in Product.objects.filter(country_id=country_id, sku__in=chunk):
+                        existing_map[(product.sku, product.country_id)] = product
+
+            new_products = []
+            new_keys = set()
+            to_update = {}
+            update_fields = set()
+
+            for i, sku, description, brand_name, country, brand in brand_keys_by_record:
+                if brand_name and brand is None:
+                    brand = brands.get((country.id, brand_name.casefold()))
+
+                key = (sku, country.id)
+                product = existing_map.get(key)
+                if product is None and key in new_keys:
+                    product = next(item for item in new_products if (item.sku, item.country_id) == key)
+
+                if product:
+                    changed = False
+                    if product.description != description:
+                        product.description = description
+                        changed = True
+                        update_fields.add('description')
+                    if product.brand_id != (brand.id if brand else None):
+                        product.brand = brand
+                        changed = True
+                        update_fields.add('brand')
+                    if changed and product.pk:
+                        to_update[product.pk] = product
+                else:
+                    product = Product(sku=sku, description=description, brand=brand, country=country)
+                    new_products.append(product)
+                    new_keys.add(key)
+                    existing_map[key] = product
+
+            if to_update:
+                fields = [field for field in ('description', 'brand') if field in update_fields]
+                Product.objects.bulk_update(list(to_update.values()), fields, batch_size=500)
+            if new_products:
+                Product.objects.bulk_create(new_products, batch_size=500)
+            created_count = len(new_products)
+            updated_count = len(to_update)
 
         context = {
             'created_count': created_count,
